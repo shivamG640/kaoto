@@ -32,6 +32,7 @@ import java.util.*;
  * Customize Camel Catalog for Kaoto.
  */
 public class CamelCatalogProcessor {
+    private static final String LOG_DEFINITION = "org.apache.camel.model.LogDefinition";
     private static final String TO_DYNAMIC_DEFINITION = "org.apache.camel.model.ToDynamicDefinition";
     private static final String SET_HEADERS_DEFINITION = "org.apache.camel.model.SetHeadersDefinition";
     private static final String SET_VARIABLES_DEFINITION = "org.apache.camel.model.SetVariablesDefinition";
@@ -251,6 +252,10 @@ public class CamelCatalogProcessor {
 
             for (var propertyName : camelYamlDslProperties) {
                 var propertySchema = processorSchema.withObject("/properties").withObject("/" + propertyName);
+                if (LOG_DEFINITION.equals(processorFQCN) && "message".equals(propertyName)) {
+                    propertySchema.put("default", "${body}");
+                }
+
                 if (TO_DYNAMIC_DEFINITION.equals(processorFQCN) && "parameters".equals(propertyName)) {
                     // "parameters" as a common property is omitted in the catalog, but we need this for "toD"
                     propertySchema.put("title", "Parameters");
