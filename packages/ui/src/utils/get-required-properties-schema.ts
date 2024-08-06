@@ -2,10 +2,10 @@ import { KaotoSchemaDefinition } from '../models';
 import { isDefined } from './is-defined';
 
 export function getRequiredPropertiesSchema(schema: KaotoSchemaDefinition['schema']): KaotoSchemaDefinition['schema'] {
+  if (!isDefined(schema)) return {};
+
   const schemaProperties = schema.properties ?? {};
   const requiredProperties = schema.required as string[];
-
-  if (!isDefined(schema)) return {};
 
   if ('required' in schema) {
     const requiredFormSchema = Object.entries(schemaProperties).reduce(
@@ -24,5 +24,5 @@ export function getRequiredPropertiesSchema(schema: KaotoSchemaDefinition['schem
     return { ...schema, properties: requiredFormSchema };
   }
 
-  return {};
+  return {...schema, properties: {}};
 }
