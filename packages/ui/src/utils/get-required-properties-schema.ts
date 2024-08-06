@@ -24,5 +24,5 @@ export function getRequiredPropertiesSchema(schema: KaotoSchemaDefinition['schem
     return { ...schema, properties: requiredFormSchema };
   }
 
-  return {...schema, properties: {}};
+  return { ...schema, properties: {} };
 }
