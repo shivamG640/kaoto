@@ -12,7 +12,9 @@ export function getRequiredPropertiesSchema(schema: KaotoSchemaDefinition['schem
       (acc, [property, definition]) => {
         if (definition['type'] === 'object' && 'properties' in definition) {
           const subSchema = getRequiredPropertiesSchema(definition);
-          acc[property] = subSchema;
+          if (Object.keys(subSchema.properties as object).length > 0) {
+            acc[property] = subSchema;
+          }
         } else {
           if (requiredProperties.indexOf(property) > -1) acc[property] = definition;
         }
@@ -21,6 +23,7 @@ export function getRequiredPropertiesSchema(schema: KaotoSchemaDefinition['schem
       },
       {} as KaotoSchemaDefinition['schema'],
     );
+    console.log(requiredFormSchema);
     return { ...schema, properties: requiredFormSchema };
   }
 
