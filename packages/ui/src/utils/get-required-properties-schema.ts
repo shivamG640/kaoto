@@ -7,7 +7,7 @@ export function getRequiredPropertiesSchema(schema: KaotoSchemaDefinition['schem
   const schemaProperties = schema.properties ?? {};
   const requiredProperties = schema.required as string[];
 
-  if ('required' in schema) {
+  if (isDefined(requiredProperties)) {
     const requiredFormSchema = Object.entries(schemaProperties).reduce(
       (acc, [property, definition]) => {
         if (definition['type'] === 'object' && 'properties' in definition) {
