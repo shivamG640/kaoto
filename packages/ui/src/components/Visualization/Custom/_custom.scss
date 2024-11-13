@@ -11,6 +11,7 @@
   --custom-node-BorderRadius: 10px;
   --custom-node-hover-BorderColor: var(--pf-v5-global--primary-color--light-100);
   --custom-node-Shadow: var(--pf-v5-global--BoxShadow--md);
+  --custom-node-dropTarget-BorderColor: var(--pf-v5-global--palette--light-green-500);
 
   &[data-selected='true'] {
     --custom-node-BorderColor: var(--pf-v5-global--primary-color--dark-100);
