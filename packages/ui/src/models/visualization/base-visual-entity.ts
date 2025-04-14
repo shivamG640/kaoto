@@ -135,6 +135,8 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
 
   /** Retrieve the node's validation status, relying into the underlying entity */
   getNodeValidationText(): string | undefined;
+
+  addNodeLabelListener(listener: () => void): void;
 }
 
 export interface IVisualizationNodeData {
