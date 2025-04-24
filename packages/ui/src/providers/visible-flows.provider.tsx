@@ -4,7 +4,7 @@ import {
   VisibleFlowsReducer,
   VisualFlowsApi,
 } from '../models/visualization/flows/support/flows-visibility';
-import { initVisibleFlows, isSameArray } from '../utils';
+import { initVisibleFlows } from '../utils';
 import { EntitiesContext } from './entities.provider';
 
 export interface VisibleFlowsContextResult {
