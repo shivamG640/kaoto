@@ -1,4 +1,5 @@
 import { initVisibleFlows } from '../../../../utils/init-visible-flows';
+import { isSameArray } from '../../../../utils';
 
 export interface IVisibleFlowsInformation {
   singleFlowId: string | undefined;
@@ -78,11 +79,12 @@ export function VisibleFlowsReducer(state: IVisibleFlows, action: VisibleFlowAct
       return {};
 
     case 'initVisibleFlows': {
-      if (action.flowsIds.length === Object.keys(state).length) {
+      const stateIds = Object.keys(state);
+      if (isSameArray(action.flowsIds, stateIds)) {
         return state;
       }
 
-      return initVisibleFlows(action.flowsIds);
+      return initVisibleFlows(action.flowsIds, state);
     }
 
     case 'renameFlow':
