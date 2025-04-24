@@ -78,6 +78,10 @@ export function VisibleFlowsReducer(state: IVisibleFlows, action: VisibleFlowAct
       return {};
 
     case 'initVisibleFlows': {
+      if (action.flowsIds.length === Object.keys(state).length) {
+        return state;
+      }
+
       return initVisibleFlows(action.flowsIds);
     }
 

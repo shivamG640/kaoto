@@ -28,21 +28,9 @@ export const VisibleFlowsProvider: FunctionComponent<PropsWithChildren> = (props
     return new VisualFlowsApi(dispatch);
   }, [dispatch]);
 
-  const visibleFlowsIds = useMemo(() => Object.keys(visibleFlows), [visibleFlows]);
-
   useEffect(() => {
-    const hasSameIds = isSameArray(visualEntitiesIds, visibleFlowsIds);
-
-    /**
-     * If the ids of the visual entities are different from the ids of the visible flows,
-     * we need to initialize the visible flows with the new ids.
-     * This is important because the visible flows are stored in the state and
-     * if the ids change, we need to update the state to reflect the new ids.
-     */
-    if (!hasSameIds) {
-      visualFlowsApi.initVisibleFlows(visualEntitiesIds);
-    }
-  }, [visibleFlowsIds, visualEntitiesIds, visualFlowsApi]);
+    visualFlowsApi.initVisibleFlows(visualEntitiesIds);
+  }, [visualEntitiesIds, visualFlowsApi]);
 
   const value = useMemo(() => {
     return {
