@@ -4,16 +4,23 @@ import { isDefined } from '../../../../../utils';
 import { useFieldValue } from '../hooks/field-value';
 import { SchemaContext } from '../providers/SchemaProvider';
 import { FieldProps } from '../typings';
-import { FieldWrapper } from './FieldWrapper';
 import { FieldActions } from './FieldActions';
+import { FieldWrapper } from './FieldWrapper';
 
 export const StringField: FunctionComponent<FieldProps> = ({ propName, required, onRemove: onRemoveProps }) => {
   const { schema } = useContext(SchemaContext);
-  const { value = '', errors, onChange, isRaw, disabled } = useFieldValue<string>(propName);
+  const { value = '', errors, onChange, isRaw, disabled } = useFieldValue<string | number>(propName);
   const lastPropName = propName.split('.').pop();
   const ariaLabel = isDefined(onRemoveProps) ? 'Remove' : `Clear ${lastPropName} field`;
+  const schemaType = typeof schema.type === 'string' ? schema.type : 'uknown';
 
   const onFieldChange = (_event: unknown, value: string) => {
+    const shouldSerializeAsNumber = (schema.type === 'number' || schema.type === 'integer') && !isNaN(Number(value));
+    if (shouldSerializeAsNumber) {
+      onChange(Number(value));
+      return;
+    }
+
     onChange(value);
   };
 
@@ -34,7 +41,7 @@ export const StringField: FunctionComponent<FieldProps> = ({ propName, required,
       propName={propName}
       required={required}
       title={schema.title}
-      type="string"
+      type={schemaType}
       description={schema.description}
       defaultValue={schema.default?.toString()}
       errors={errors}

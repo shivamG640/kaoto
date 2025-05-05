@@ -28,22 +28,62 @@ describe('StringField', () => {
     expect(input).toHaveAttribute('placeholder', 'Default Value');
   });
 
-  it('should notify when the value changes', () => {
-    const onPropertyChangeSpy = jest.fn();
+  describe('onChange', () => {
+    it('should notify when the value changes', () => {
+      const onPropertyChangeSpy = jest.fn();
 
-    const wrapper = render(
-      <ModelContextProvider model="Value" onPropertyChange={onPropertyChangeSpy}>
-        <StringField propName={ROOT_PATH} />
-      </ModelContextProvider>,
-    );
+      const wrapper = render(
+        <ModelContextProvider model="Value" onPropertyChange={onPropertyChangeSpy}>
+          <StringField propName={ROOT_PATH} />
+        </ModelContextProvider>,
+      );
 
-    const input = wrapper.getByRole('textbox');
-    act(() => {
-      fireEvent.change(input, { target: { value: 'New Value' } });
+      const input = wrapper.getByRole('textbox');
+      act(() => {
+        fireEvent.change(input, { target: { value: 'New Value' } });
+      });
+
+      expect(onPropertyChangeSpy).toHaveBeenCalledTimes(1);
+      expect(onPropertyChangeSpy).toHaveBeenCalledWith(ROOT_PATH, 'New Value');
     });
 
-    expect(onPropertyChangeSpy).toHaveBeenCalledTimes(1);
-    expect(onPropertyChangeSpy).toHaveBeenCalledWith(ROOT_PATH, 'New Value');
+    it('should notify when the value changes to a number', () => {
+      const onPropertyChangeSpy = jest.fn();
+
+      const wrapper = render(
+        <SchemaProvider schema={{ type: 'number' }}>
+          <ModelContextProvider model="" onPropertyChange={onPropertyChangeSpy}>
+            <StringField propName={ROOT_PATH} />
+          </ModelContextProvider>
+        </SchemaProvider>,
+      );
+
+      const input = wrapper.getByRole('textbox');
+      act(() => {
+        fireEvent.change(input, { target: { value: '123' } });
+      });
+
+      expect(onPropertyChangeSpy).toHaveBeenCalledTimes(1);
+      expect(onPropertyChangeSpy).toHaveBeenCalledWith(ROOT_PATH, 123);
+    });
+
+    it('should notify when the value is empty', () => {
+      const onPropertyChangeSpy = jest.fn();
+
+      const wrapper = render(
+        <ModelContextProvider model="Value" onPropertyChange={onPropertyChangeSpy}>
+          <StringField propName={ROOT_PATH} />
+        </ModelContextProvider>,
+      );
+
+      const input = wrapper.getByRole('textbox');
+      act(() => {
+        fireEvent.change(input, { target: { value: '' } });
+      });
+
+      expect(onPropertyChangeSpy).toHaveBeenCalledTimes(1);
+      expect(onPropertyChangeSpy).toHaveBeenCalledWith(ROOT_PATH, '');
+    });
   });
 
   it('should clear the input when using the clear button', async () => {
