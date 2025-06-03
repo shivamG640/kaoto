@@ -1,3 +1,4 @@
+import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
 import { DefinedComponent } from '../camel-catalog-index';
 import { BaseCamelEntity, EntityType } from '../camel/entities';
 import { KaotoSchemaDefinition } from '../kaoto-schema';
@@ -46,6 +47,9 @@ export interface BaseVisualCamelEntity extends BaseCamelEntity {
     data: IVisualizationNodeData;
     targetProperty?: string;
   }) => void;
+
+  /** Add a step to the underlying Camel entity */
+  addStepNew: (options: { nodeValue: ProcessorDefinition; data: IVisualizationNodeData }) => void;
 
   /** Check if the node is draggable */
   canDragNode: (path?: string) => boolean;
@@ -100,6 +104,8 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
   getNodeTitle(): string;
 
   addBaseEntityStep(definedComponent: DefinedComponent, mode: AddStepMode, targetProperty?: string): void;
+
+  addNewBaseEntityStep(nodeValue: ProcessorDefinition): void;
 
   canDragNode(): boolean;
 

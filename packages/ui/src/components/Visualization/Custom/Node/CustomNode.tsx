@@ -108,8 +108,17 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       },
       end(dropResult, monitor) {
         if (monitor.didDrop() && dropResult) {
-          const draggedNodePath = element.getData().vizNode.data.path;
-          dropResult.getData()?.vizNode?.moveNodeTo(draggedNodePath);
+          const droppedViznode = dropResult.getData()?.vizNode;
+          const draggedVizNode = element.getData()?.vizNode;
+          const draggedNodeModel = draggedVizNode.getComponentSchema().definition;
+          const draggedNodeValue = Object.assign({}, { [draggedVizNode.data.processorName]: draggedNodeModel });
+
+          // delete the dragged node from the original path
+          draggedVizNode.removeChild();
+
+          // Add the dragged node to the new path
+          droppedViznode.addNewBaseEntityStep(draggedNodeValue);
+
           // Set an empty model to clear the graph
           element.getController().fromModel({
             nodes: [],

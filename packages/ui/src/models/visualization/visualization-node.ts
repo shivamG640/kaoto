@@ -10,6 +10,7 @@ import {
   NodeInteraction,
   VisualComponentSchema,
 } from './base-visual-entity';
+import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
 
 export const createVisualizationNode = <T extends IVisualizationNodeData = IVisualizationNodeData>(
   id: string,
@@ -55,6 +56,10 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
 
   getNodeTitle(): string {
     return this.getBaseEntity()?.getNodeTitle(this.data.path) ?? this.id;
+  }
+
+  addNewBaseEntityStep(nodeValue: ProcessorDefinition): void {
+    this.getBaseEntity()?.addStepNew({ nodeValue: nodeValue, data: this.data });
   }
 
   addBaseEntityStep(definition: DefinedComponent, mode: AddStepMode): void {

@@ -162,6 +162,47 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     }
   }
 
+  addStepNew(options: { nodeValue: ProcessorDefinition; data: IVisualizationNodeData }) {
+    if (options.data.path === undefined) return;
+
+    // get the default value from the viznode
+    // const defaultValue = CamelComponentDefaultService.getDefaultNodeDefinitionValue(options.definedComponent);
+
+    // const stepsProperties = CamelComponentSchemaService.getProcessorStepsProperties(
+    //   (options.data as CamelRouteVisualEntityData).processorName as keyof ProcessorDefinition,
+    // );
+
+    const pathArray = options.data.path.split('.');
+    const last = pathArray[pathArray.length - 1];
+    const penultimate = pathArray[pathArray.length - 2];
+
+    /**
+     * If the last segment is a string and the penultimate is a number, it means the target is member of an array
+     * therefore we need to look for the array and insert the element at the given index + 1
+     *
+     * f.i. route.from.steps.0.setHeader
+     * penultimate: 0
+     * last: setHeader
+     */
+    if (!Number.isInteger(Number(last)) && Number.isInteger(Number(penultimate))) {
+      /** If we're in Append mode, we need to insert the step after the selected index hence `Number(penultimate) + 1` */
+      const stepsArray: ProcessorDefinition[] = getArrayProperty(this.entityDef, pathArray.slice(0, -2).join('.'));
+      stepsArray.splice(last === 'placeholder' ? 0 : Number(penultimate), 0, options.nodeValue);
+
+      return;
+    }
+
+    if (Number.isInteger(Number(last)) && !Number.isInteger(Number(penultimate))) {
+      const stepsArray = getArrayProperty(this.entityDef, pathArray.slice(0, -1).join('.'));
+
+      /** Remove the dragged node */
+      // this.removeStep(options.draggedNodePath);
+
+      /** Add the dragged node before the drop target */
+      stepsArray.splice(Number(last), 0, options.nodeValue);
+    }
+  }
+
   canDragNode(path?: string) {
     if (!isDefined(path)) return false;
 
