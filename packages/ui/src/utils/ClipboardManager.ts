@@ -12,7 +12,6 @@ export class ClipboardManager {
     try {
       this.clipboardContent = JSON.stringify(object);
       navigator.clipboard.writeText(this.clipboardContent);
-      console.log('Content copied to clipboard:', this.clipboardContent);
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
       throw new Error('Clipboard copy failed');
@@ -25,7 +24,6 @@ export class ClipboardManager {
    */
   static paste(): IClipboardCopyObject | null {
     if (!this.clipboardContent) {
-      console.warn('Clipboard is empty or invalid');
       return null;
     }
 

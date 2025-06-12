@@ -2,7 +2,6 @@ import { DefinedComponent } from '../camel-catalog-index';
 import { BaseCamelEntity, EntityType } from '../camel/entities';
 import { KaotoSchemaDefinition } from '../kaoto-schema';
 import { NodeLabelType } from '../settings/settings.model';
-import { IClipboardCopyObject } from '../../components/Visualization/Custom/hooks/copy-step.hook';
 
 /**
  * BaseVisualCamelEntity
@@ -46,13 +45,6 @@ export interface BaseVisualCamelEntity extends BaseCamelEntity {
     mode: AddStepMode;
     data: IVisualizationNodeData;
     targetProperty?: string;
-  }) => void;
-
-  /** Add a step to the underlying Camel entity */
-  addStepNew: (options: {
-    clipboadContent: IClipboardCopyObject;
-    mode: AddStepMode;
-    data: IVisualizationNodeData;
   }) => void;
 
   /** Check if the node is draggable */
@@ -108,8 +100,6 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
   getNodeTitle(): string;
 
   addBaseEntityStep(definedComponent: DefinedComponent, mode: AddStepMode, targetProperty?: string): void;
-
-  addBaseEntityStepNew(clipboadContent: IClipboardCopyObject, mode: AddStepMode): void;
 
   canDragNode(): boolean;
 

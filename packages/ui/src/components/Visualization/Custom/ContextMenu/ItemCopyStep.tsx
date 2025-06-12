@@ -9,7 +9,7 @@ interface ItemCopyStepProps extends PropsWithChildren<IDataTestID> {
 }
 
 export const ItemCopyStep: FunctionComponent<ItemCopyStepProps> = (props) => {
-  const { onCopyStep: onCopyStep } = useCopyStep(props.vizNode);
+  const { onCopyStep } = useCopyStep(props.vizNode);
 
   return (
     <ContextMenuItem onClick={onCopyStep} data-testid={props['data-testid']}>

@@ -19,7 +19,6 @@ import { CamelComponentSchemaService } from './support/camel-component-schema.se
 import { CamelProcessorStepsProperties, CamelRouteVisualEntityData } from './support/camel-component-types';
 import { ModelValidationService } from './support/validators/model-validation.service';
 import { ClipboardManager } from '../../../utils/ClipboardManager';
-import { IClipboardCopyObject } from '../../../components/Visualization/Custom/hooks/copy-step.hook';
 import { CamelComponentFilterService } from './support/camel-component-filter.service';
 
 export abstract class AbstractCamelVisualEntity<T extends object> implements BaseVisualCamelEntity {
@@ -165,49 +164,6 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     }
   }
 
-  addStepNew(options: {
-    clipboadContent: IClipboardCopyObject;
-    mode: AddStepMode;
-    data: IVisualizationNodeData;
-    targetProperty?: string;
-  }) {
-    if (options.data.path === undefined) return;
-    const defaultValue = CamelComponentSchemaService.getNodeDefinitionValue(options.clipboadContent);
-    const stepsProperties = CamelComponentSchemaService.getProcessorStepsProperties(
-      (options.data as CamelRouteVisualEntityData).processorName as keyof ProcessorDefinition,
-    );
-
-    if (options.mode === AddStepMode.InsertChildStep || options.mode === AddStepMode.InsertSpecialChildStep) {
-      this.insertChildStepNew(options, stepsProperties, defaultValue);
-      return;
-    }
-
-    const pathArray = options.data.path.split('.');
-    const last = pathArray[pathArray.length - 1];
-    const penultimate = pathArray[pathArray.length - 2];
-
-    /**
-     * If the last segment is a string and the penultimate is a number, it means the target is member of an array
-     * therefore we need to look for the array and insert the element at the given index + 1
-     *
-     * f.i. route.from.steps.0.setHeader
-     * penultimate: 0
-     * last: setHeader
-     */
-    if (!Number.isInteger(Number(last)) && Number.isInteger(Number(penultimate))) {
-      /** If we're in Append mode, we need to insert the step after the selected index hence `Number(penultimate) + 1` */
-      const desiredStartIndex = options.mode === AddStepMode.AppendStep ? Number(penultimate) + 1 : Number(penultimate);
-
-      /** If we're in Replace mode, we need to delete the existing step */
-      const deleteCount = options.mode === AddStepMode.ReplaceStep ? 1 : 0;
-
-      const stepsArray: ProcessorDefinition[] = getArrayProperty(this.entityDef, pathArray.slice(0, -2).join('.'));
-      stepsArray.splice(desiredStartIndex, deleteCount, defaultValue);
-
-      return;
-    }
-  }
-
   canDragNode(path?: string) {
     if (!isDefined(path)) return false;
 
@@ -324,7 +280,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
       canHavePreviousStep &&
       !!clipboardContent &&
       CamelComponentFilterService.isCompatible(
-        clipboardContent?.processorName,
+        clipboardContent?.name,
         AddStepMode.AppendStep,
         data as CamelRouteVisualEntityData,
       );
@@ -334,7 +290,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
       canHaveChildren &&
       !!clipboardContent &&
       CamelComponentFilterService.isCompatible(
-        clipboardContent?.processorName,
+        clipboardContent?.name,
         AddStepMode.InsertChildStep,
         data as CamelRouteVisualEntityData,
       );
@@ -344,7 +300,7 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
       canHaveSpecialChildren &&
       !!clipboardContent &&
       CamelComponentFilterService.isCompatible(
-        clipboardContent?.processorName,
+        clipboardContent?.name,
         AddStepMode.InsertSpecialChildStep,
         data as CamelRouteVisualEntityData,
         this.getComponentSchema(data.path)?.definition,
@@ -422,27 +378,6 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
   ) {
     const property = stepsProperties.find((property) =>
       options.mode === AddStepMode.InsertChildStep ? 'steps' : options.definedComponent.name === property.name,
-    );
-    if (property === undefined) return;
-
-    if (property.type === 'single-clause') {
-      setValue(this.entityDef, `${options.data.path}.${property.name}`, defaultValue);
-    } else {
-      const arrayPath: ProcessorDefinition[] = getArrayProperty(
-        this.entityDef,
-        `${options.data.path}.${property.name}`,
-      );
-      arrayPath.unshift(defaultValue);
-    }
-  }
-
-  private insertChildStepNew(
-    options: Parameters<AbstractCamelVisualEntity<object>['addStepNew']>[0],
-    stepsProperties: CamelProcessorStepsProperties[],
-    defaultValue: ProcessorDefinition = {},
-  ) {
-    const property = stepsProperties.find((property) =>
-      options.mode === AddStepMode.InsertChildStep ? 'steps' : options.clipboadContent.processorName === property.name,
     );
     if (property === undefined) return;
 

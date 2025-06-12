@@ -16,7 +16,6 @@ import { VisualComponentSchema } from '../../base-visual-entity';
 import { CamelCatalogService } from '../camel-catalog.service';
 import { CamelComponentFilterService } from './camel-component-filter.service';
 import { CamelProcessorStepsProperties, ICamelElementLookupResult } from './camel-component-types';
-import { IClipboardCopyObject } from '../../../../components/Visualization/Custom/hooks/copy-step.hook';
 
 export class CamelComponentSchemaService {
   static DISABLED_SIBLING_STEPS = [
@@ -501,18 +500,5 @@ export class CamelComponentSchemaService {
     const processorDefinition = CamelCatalogService.getComponent(CatalogKind.Processor, processorName);
 
     return Object.keys(processorDefinition?.properties ?? {}).includes('disabled');
-  }
-
-  /**
-   * Get the definition for a given component and property
-   */
-  static getNodeDefinitionValue(clipboardContent: IClipboardCopyObject): ProcessorDefinition {
-    const { processorName, DSL } = clipboardContent;
-
-    if (CamelComponentFilterService.SPECIAL_PROCESSORS.includes(processorName)) {
-      return DSL as ProcessorDefinition;
-    } else {
-      return { [processorName]: DSL } as ProcessorDefinition;
-    }
   }
 }

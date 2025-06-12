@@ -1,25 +1,22 @@
 import { useCallback, useMemo } from 'react';
 import { IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
 import { ClipboardManager } from '../../../../utils/ClipboardManager';
-import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
 
 export interface IClipboardCopyObject {
-  DSL: ProcessorDefinition;
-  processorName: string;
+  name: string;
+  // can the type be more specific like: ProcessorDefinition[keyof ProcessorDefinition]
+  defaultValue: object;
 }
 
 export const useCopyStep = (vizNode: IVisualizationNode) => {
   const onCopyStep = useCallback(async () => {
     if (!vizNode) return;
 
-    const model = vizNode.getComponentSchema()?.definition || {};
-    const copiedNode = Object.assign(
-      {},
-      { DSL: model },
-      {
-        processorName: vizNode.data.processorName,
-      },
-    ) as IClipboardCopyObject;
+    const model = vizNode.getComponentSchema()?.definition ?? {};
+    const copiedNode: IClipboardCopyObject = {
+      defaultValue: model,
+      name: vizNode.data.processorName as string,
+    };
     /** Copy the node model */
     try {
       ClipboardManager.copy(copiedNode);

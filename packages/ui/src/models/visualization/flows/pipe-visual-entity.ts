@@ -167,10 +167,6 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
     }
   }
 
-  addStepNew(): void {
-    return;
-  }
-
   canDragNode(path?: string) {
     if (!isDefined(path)) return false;
 

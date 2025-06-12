@@ -2,6 +2,7 @@ import { useCallback, useContext, useMemo } from 'react';
 import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
 import { EntitiesContext } from '../../../../providers/entities.provider';
 import { ClipboardManager } from '../../../../utils/ClipboardManager';
+import { DefinedComponent } from '../../../../models/camel-catalog-index';
 
 export const usePasteStep = (
   vizNode: IVisualizationNode,
@@ -19,8 +20,7 @@ export const usePasteStep = (
       const pastedNodeValue = ClipboardManager.paste();
       if (pastedNodeValue) {
         /** Add new node to the entities */
-        vizNode.addBaseEntityStepNew(pastedNodeValue, mode);
-
+        vizNode.addBaseEntityStep(pastedNodeValue as DefinedComponent, mode);
         /** Update entity */
         entitiesContext.updateEntitiesFromCamelResource();
       }

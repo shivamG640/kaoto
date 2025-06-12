@@ -126,47 +126,62 @@ export class CamelComponentFilterService {
     definition?: any,
   ): boolean {
     if (mode === AddStepMode.InsertChildStep) {
-      // If the copied processor is a SPECIAL_PROCESSORS, we don't want to allow it to be inserted as a child step
-      if (this.SPECIAL_PROCESSORS.includes(copiedProcessorName)) {
-        return false;
-      }
-
-      return true;
+      return this.isCompatibleForInsertChildStep(copiedProcessorName);
     }
 
     if (mode === AddStepMode.InsertSpecialChildStep) {
-      // If the base processor is not in key list of SPECIAL_PROCESSORS_PARENTS_MAP, we don't want to allow it for any special child step insertion
-      if (!(visualEntityData.processorName in this.SPECIAL_PROCESSORS_PARENTS_MAP)) {
-        return false;
-      }
-
-      if (
-        this.SPECIAL_PROCESSORS_PARENTS_MAP[
-          visualEntityData.processorName as keyof typeof this.SPECIAL_PROCESSORS_PARENTS_MAP
-        ].includes(copiedProcessorName)
-      ) {
-        /** If an `otherwise` or a `doFinally` already exists, we shouldn't offer it in the catalog */
-        const definitionKeys = Object.keys(definition ?? {});
-        if (visualEntityData.processorName === 'circuitBreaker' && definitionKeys.includes('onFallback')) {
-          return copiedProcessorName !== 'onFallback';
-        }
-        if (visualEntityData.processorName === 'choice' && definitionKeys.includes('otherwise')) {
-          return copiedProcessorName !== 'otherwise';
-        }
-        if (visualEntityData.processorName === 'doTry' && definitionKeys.includes('doFinally')) {
-          return copiedProcessorName !== 'doFinally';
-        }
-
-        return true;
-      }
-
-      return false;
+      return this.isCompatibleForInsertSpecialChildStep(copiedProcessorName, visualEntityData, definition);
     }
 
     if (mode === AddStepMode.AppendStep) {
-      return !this.SPECIAL_PROCESSORS.includes(copiedProcessorName);
+      return this.isCompatibleForAppendStep(copiedProcessorName);
     }
 
     return false;
+  }
+
+  private static isCompatibleForInsertChildStep(copiedProcessorName: string): boolean {
+    // If the copied processor is a SPECIAL_PROCESSORS, we don't want to allow it to be inserted as a child step
+    return !this.SPECIAL_PROCESSORS.includes(copiedProcessorName);
+  }
+
+  private static isCompatibleForInsertSpecialChildStep(
+    copiedProcessorName: string,
+    visualEntityData: CamelRouteVisualEntityData,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    definition?: any,
+  ): boolean {
+    const { processorName } = visualEntityData;
+
+    // If the base processor is not in the key list of SPECIAL_PROCESSORS_PARENTS_MAP, we don't want to allow it for any special child step insertion
+    if (!(processorName in this.SPECIAL_PROCESSORS_PARENTS_MAP)) {
+      return false;
+    }
+
+    const specialChildren =
+      this.SPECIAL_PROCESSORS_PARENTS_MAP[processorName as keyof typeof this.SPECIAL_PROCESSORS_PARENTS_MAP];
+
+    if (!specialChildren.includes(copiedProcessorName)) {
+      return false;
+    }
+
+    // Check for specific cases where certain special children should not be allowed
+    const definitionKeys = Object.keys(definition ?? {});
+    if (processorName === 'circuitBreaker' && definitionKeys.includes('onFallback')) {
+      return copiedProcessorName !== 'onFallback';
+    }
+    if (processorName === 'choice' && definitionKeys.includes('otherwise')) {
+      return copiedProcessorName !== 'otherwise';
+    }
+    if (processorName === 'doTry' && definitionKeys.includes('doFinally')) {
+      return copiedProcessorName !== 'doFinally';
+    }
+
+    return true;
+  }
+
+  private static isCompatibleForAppendStep(copiedProcessorName: string): boolean {
+    // Append step compatibility excludes SPECIAL_PROCESSORS
+    return !this.SPECIAL_PROCESSORS.includes(copiedProcessorName);
   }
 }

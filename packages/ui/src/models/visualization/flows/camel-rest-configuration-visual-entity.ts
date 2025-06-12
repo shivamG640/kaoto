@@ -72,10 +72,6 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualCamelEntity
     return;
   }
 
-  addStepNew(): void {
-    return;
-  }
-
   canDragNode(_path?: string) {
     return false;
   }
