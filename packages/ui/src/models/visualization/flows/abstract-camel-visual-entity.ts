@@ -18,6 +18,9 @@ import { CamelComponentDefaultService } from './support/camel-component-default.
 import { CamelComponentSchemaService } from './support/camel-component-schema.service';
 import { CamelProcessorStepsProperties, CamelRouteVisualEntityData } from './support/camel-component-types';
 import { ModelValidationService } from './support/validators/model-validation.service';
+import { ClipboardManager } from '../../../utils/ClipboardManager';
+import { IClipboardCopyObject } from '../../../components/Visualization/Custom/hooks/copy-step.hook';
+import { CamelComponentFilterService } from './support/camel-component-filter.service';
 
 export abstract class AbstractCamelVisualEntity<T extends object> implements BaseVisualCamelEntity {
   constructor(public entityDef: T) {}
@@ -162,6 +165,49 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     }
   }
 
+  addStepNew(options: {
+    clipboadContent: IClipboardCopyObject;
+    mode: AddStepMode;
+    data: IVisualizationNodeData;
+    targetProperty?: string;
+  }) {
+    if (options.data.path === undefined) return;
+    const defaultValue = CamelComponentSchemaService.getNodeDefinitionValue(options.clipboadContent);
+    const stepsProperties = CamelComponentSchemaService.getProcessorStepsProperties(
+      (options.data as CamelRouteVisualEntityData).processorName as keyof ProcessorDefinition,
+    );
+
+    if (options.mode === AddStepMode.InsertChildStep || options.mode === AddStepMode.InsertSpecialChildStep) {
+      this.insertChildStepNew(options, stepsProperties, defaultValue);
+      return;
+    }
+
+    const pathArray = options.data.path.split('.');
+    const last = pathArray[pathArray.length - 1];
+    const penultimate = pathArray[pathArray.length - 2];
+
+    /**
+     * If the last segment is a string and the penultimate is a number, it means the target is member of an array
+     * therefore we need to look for the array and insert the element at the given index + 1
+     *
+     * f.i. route.from.steps.0.setHeader
+     * penultimate: 0
+     * last: setHeader
+     */
+    if (!Number.isInteger(Number(last)) && Number.isInteger(Number(penultimate))) {
+      /** If we're in Append mode, we need to insert the step after the selected index hence `Number(penultimate) + 1` */
+      const desiredStartIndex = options.mode === AddStepMode.AppendStep ? Number(penultimate) + 1 : Number(penultimate);
+
+      /** If we're in Replace mode, we need to delete the existing step */
+      const deleteCount = options.mode === AddStepMode.ReplaceStep ? 1 : 0;
+
+      const stepsArray: ProcessorDefinition[] = getArrayProperty(this.entityDef, pathArray.slice(0, -2).join('.'));
+      stepsArray.splice(desiredStartIndex, deleteCount, defaultValue);
+
+      return;
+    }
+  }
+
   canDragNode(path?: string) {
     if (!isDefined(path)) return false;
 
@@ -268,6 +314,41 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     const canRemoveStep = !CamelComponentSchemaService.DISABLED_REMOVE_STEPS.includes(processorName);
     const canRemoveFlow = data.path === this.getRootPath();
     const canBeDisabled = CamelComponentSchemaService.canBeDisabled(processorName);
+    const canBeCopied = data.path !== 'route.from' && data.path !== 'template.from';
+
+    // Check if the clipboard has valid content to paste
+    const clipboardContent = ClipboardManager.getClipboardContent();
+
+    // Check if the clipboard content can be pasted as a next step
+    const canBePastedAsNextStep =
+      canHavePreviousStep &&
+      !!clipboardContent &&
+      CamelComponentFilterService.isCompatible(
+        clipboardContent?.processorName,
+        AddStepMode.AppendStep,
+        data as CamelRouteVisualEntityData,
+      );
+
+    // Check if the clipboard content can be pasted as a child step
+    const canBePastedAsChild =
+      canHaveChildren &&
+      !!clipboardContent &&
+      CamelComponentFilterService.isCompatible(
+        clipboardContent?.processorName,
+        AddStepMode.InsertChildStep,
+        data as CamelRouteVisualEntityData,
+      );
+
+    // Check if the clipboard content can be pasted as a special child step
+    const canBePastedAsSpecialChild =
+      canHaveSpecialChildren &&
+      !!clipboardContent &&
+      CamelComponentFilterService.isCompatible(
+        clipboardContent?.processorName,
+        AddStepMode.InsertSpecialChildStep,
+        data as CamelRouteVisualEntityData,
+        this.getComponentSchema(data.path)?.definition,
+      );
 
     return {
       canHavePreviousStep,
@@ -278,6 +359,10 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
       canRemoveStep,
       canRemoveFlow,
       canBeDisabled,
+      canBeCopied,
+      canBePastedAsNextStep,
+      canBePastedAsChild,
+      canBePastedAsSpecialChild,
     };
   }
 
@@ -337,6 +422,27 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
   ) {
     const property = stepsProperties.find((property) =>
       options.mode === AddStepMode.InsertChildStep ? 'steps' : options.definedComponent.name === property.name,
+    );
+    if (property === undefined) return;
+
+    if (property.type === 'single-clause') {
+      setValue(this.entityDef, `${options.data.path}.${property.name}`, defaultValue);
+    } else {
+      const arrayPath: ProcessorDefinition[] = getArrayProperty(
+        this.entityDef,
+        `${options.data.path}.${property.name}`,
+      );
+      arrayPath.unshift(defaultValue);
+    }
+  }
+
+  private insertChildStepNew(
+    options: Parameters<AbstractCamelVisualEntity<object>['addStepNew']>[0],
+    stepsProperties: CamelProcessorStepsProperties[],
+    defaultValue: ProcessorDefinition = {},
+  ) {
+    const property = stepsProperties.find((property) =>
+      options.mode === AddStepMode.InsertChildStep ? 'steps' : options.clipboadContent.processorName === property.name,
     );
     if (property === undefined) return;
 

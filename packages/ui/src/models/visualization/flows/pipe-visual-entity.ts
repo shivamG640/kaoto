@@ -167,6 +167,10 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
     }
   }
 
+  addStepNew(): void {
+    return;
+  }
+
   canDragNode(path?: string) {
     if (!isDefined(path)) return false;
 
@@ -227,6 +231,10 @@ export class PipeVisualEntity implements BaseVisualCamelEntity {
       canRemoveStep: data.path !== this.getRootPath(),
       canRemoveFlow: data.path === this.getRootPath(),
       canBeDisabled: false,
+      canBeCopied: false,
+      canBePastedAsChild: false,
+      canBePastedAsNextStep: false,
+      canBePastedAsSpecialChild: false,
     };
   }
 

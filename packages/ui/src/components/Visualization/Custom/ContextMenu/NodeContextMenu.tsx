@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowUpIcon, CodeBranchIcon, PlusIcon } from '@patternfly/react-icons';
+import { ArrowDownIcon, ArrowUpIcon, CodeBranchIcon, CopyIcon, PasteIcon, PlusIcon } from '@patternfly/react-icons';
 import { ContextMenuSeparator, ElementModel, GraphElement } from '@patternfly/react-topology';
 import { forwardRef, ReactElement } from 'react';
 import { AddStepMode } from '../../../../models/visualization/base-visual-entity';
@@ -10,6 +10,8 @@ import { ItemDisableStep } from './ItemDisableStep';
 import { ItemEnableAllSteps } from './ItemEnableAllSteps';
 import { ItemInsertStep } from './ItemInsertStep';
 import { ItemReplaceStep } from './ItemReplaceStep';
+import { ItemCopyStep } from './ItemCopyStep';
+import { ItemPasteStep } from './ItemPasteStep';
 
 export const NodeContextMenuFn = (element: GraphElement<ElementModel, CanvasNode['data']>) => {
   const items: ReactElement[] = [];
@@ -42,6 +44,49 @@ export const NodeContextMenuFn = (element: GraphElement<ElementModel, CanvasNode
       >
         <ArrowDownIcon /> Append
       </ItemAddStep>,
+    );
+  }
+  if (nodeInteractions.canBeCopied) {
+    items.push(
+      <ItemCopyStep key="context-menu-item-copy" data-testid="context-menu-item-copy" vizNode={vizNode}>
+        <CopyIcon /> Copy
+      </ItemCopyStep>,
+    );
+  }
+  if (nodeInteractions.canBePastedAsChild) {
+    items.push(
+      <ItemPasteStep
+        key="context-menu-item-paste-as-child"
+        data-testid="context-menu-item-paste-as-child"
+        mode={AddStepMode.InsertChildStep}
+        vizNode={vizNode}
+      >
+        <PasteIcon /> Paste as child
+      </ItemPasteStep>,
+    );
+  }
+  if (nodeInteractions.canBePastedAsNextStep) {
+    items.push(
+      <ItemPasteStep
+        key="context-menu-item-paste-as-next-step"
+        data-testid="context-menu-item-paste-as-next-step"
+        mode={AddStepMode.AppendStep}
+        vizNode={vizNode}
+      >
+        <PasteIcon /> Paste as next step
+      </ItemPasteStep>,
+    );
+  }
+  if (nodeInteractions.canBePastedAsSpecialChild) {
+    items.push(
+      <ItemPasteStep
+        key="context-menu-item-paste"
+        data-testid="context-menu-item-paste"
+        mode={AddStepMode.InsertSpecialChildStep}
+        vizNode={vizNode}
+      >
+        <PasteIcon /> Paste as special child
+      </ItemPasteStep>,
     );
   }
   if (nodeInteractions.canHavePreviousStep || nodeInteractions.canHaveNextStep) {

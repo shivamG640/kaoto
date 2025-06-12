@@ -90,6 +90,10 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
     return;
   }
 
+  addStepNew(): void {
+    return;
+  }
+
   canDragNode(_path?: string) {
     return false;
   }
@@ -139,6 +143,10 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
       canReplaceStep: false,
       canRemoveFlow: true,
       canBeDisabled: false,
+      canBeCopied: false,
+      canBePastedAsChild: false,
+      canBePastedAsNextStep: false,
+      canBePastedAsSpecialChild: false,
     };
   }
 
