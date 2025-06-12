@@ -5,7 +5,7 @@ import { CamelRouteVisualEntityData } from './camel-component-types';
 
 export class CamelComponentFilterService {
   static readonly REST_DSL_METHODS = ['delete', 'get', 'head', 'patch', 'post', 'put'];
-  private static readonly SPECIAL_PROCESSORS = [
+  static readonly SPECIAL_PROCESSORS = [
     'onFallback',
     'when',
     'otherwise',
@@ -116,5 +116,57 @@ export class CamelComponentFilterService {
     return (item: ITile) => {
       return (item.type === CatalogKind.Kamelet && item.name === 'sink') || camelComponentFilter(item);
     };
+  }
+
+  static isCompatible(
+    copiedProcessorName: string,
+    mode: AddStepMode,
+    visualEntityData: CamelRouteVisualEntityData,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    definition?: any,
+  ): boolean {
+    if (mode === AddStepMode.InsertChildStep) {
+      // If the copied processor is a SPECIAL_PROCESSORS, we don't want to allow it to be inserted as a child step
+      if (this.SPECIAL_PROCESSORS.includes(copiedProcessorName)) {
+        return false;
+      }
+
+      return true;
+    }
+
+    if (mode === AddStepMode.InsertSpecialChildStep) {
+      // If the base processor is not in key list of SPECIAL_PROCESSORS_PARENTS_MAP, we don't want to allow it for any special child step insertion
+      if (!(visualEntityData.processorName in this.SPECIAL_PROCESSORS_PARENTS_MAP)) {
+        return false;
+      }
+
+      if (
+        this.SPECIAL_PROCESSORS_PARENTS_MAP[
+          visualEntityData.processorName as keyof typeof this.SPECIAL_PROCESSORS_PARENTS_MAP
+        ].includes(copiedProcessorName)
+      ) {
+        /** If an `otherwise` or a `doFinally` already exists, we shouldn't offer it in the catalog */
+        const definitionKeys = Object.keys(definition ?? {});
+        if (visualEntityData.processorName === 'circuitBreaker' && definitionKeys.includes('onFallback')) {
+          return copiedProcessorName !== 'onFallback';
+        }
+        if (visualEntityData.processorName === 'choice' && definitionKeys.includes('otherwise')) {
+          return copiedProcessorName !== 'otherwise';
+        }
+        if (visualEntityData.processorName === 'doTry' && definitionKeys.includes('doFinally')) {
+          return copiedProcessorName !== 'doFinally';
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    if (mode === AddStepMode.AppendStep) {
+      return !this.SPECIAL_PROCESSORS.includes(copiedProcessorName);
+    }
+
+    return false;
   }
 }
