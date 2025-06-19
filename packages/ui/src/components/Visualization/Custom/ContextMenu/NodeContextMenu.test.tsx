@@ -40,9 +40,6 @@ describe('NodeContextMenu', () => {
       canRemoveFlow: false,
       canBeDisabled: false,
       canBeCopied: false,
-      canBePastedAsChild: false,
-      canBePastedAsNextStep: false,
-      canBePastedAsSpecialChild: false,
     };
     vizNode = createVisualizationNode('test', {});
     jest.spyOn(vizNode, 'getNodeInteraction').mockReturnValue(nodeInteractions);

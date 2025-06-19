@@ -92,9 +92,6 @@ export class CamelRestVisualEntity extends AbstractCamelVisualEntity<{ rest: Res
       canRemoveFlow: true,
       canBeDisabled: true,
       canBeCopied: false,
-      canBePastedAsChild: false,
-      canBePastedAsNextStep: false,
-      canBePastedAsSpecialChild: false,
     };
   }
 

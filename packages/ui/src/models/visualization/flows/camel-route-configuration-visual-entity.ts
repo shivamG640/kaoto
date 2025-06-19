@@ -122,9 +122,6 @@ export class CamelRouteConfigurationVisualEntity
         canRemoveFlow: true,
         canBeDisabled: false,
         canBeCopied: false,
-        canBePastedAsChild: false,
-        canBePastedAsNextStep: false,
-        canBePastedAsSpecialChild: false,
       };
     }
 

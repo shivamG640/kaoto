@@ -12,6 +12,7 @@ import {
 import { NodeMapperService } from './nodes/node-mapper.service';
 import { CamelCatalogService } from './camel-catalog.service';
 import { CatalogKind } from '../../catalog-kind';
+import { IClipboardCopyObject } from '../../../components/Visualization/Custom/hooks/copy-step.hook';
 
 export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
   id: string;
@@ -90,6 +91,14 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
     return;
   }
 
+  getCopiedContent(): IClipboardCopyObject | undefined {
+    return undefined;
+  }
+
+  pasteStep(): void {
+    return;
+  }
+
   canDragNode(_path?: string) {
     return false;
   }
@@ -140,9 +149,6 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualCamelEntity {
       canRemoveFlow: true,
       canBeDisabled: false,
       canBeCopied: false,
-      canBePastedAsChild: false,
-      canBePastedAsNextStep: false,
-      canBePastedAsSpecialChild: false,
     };
   }
 

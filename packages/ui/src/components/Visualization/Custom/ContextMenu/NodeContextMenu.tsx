@@ -138,7 +138,8 @@ const addCopyPasteItems = (items: ReactElement[], nodeInteractions: NodeInteract
       </ItemCopyStep>,
     );
   }
-  if (nodeInteractions.canBePastedAsChild) {
+
+  if (nodeInteractions.canHaveChildren) {
     items.push(
       <ItemPasteStep
         key="context-menu-item-paste-as-child"
@@ -150,7 +151,8 @@ const addCopyPasteItems = (items: ReactElement[], nodeInteractions: NodeInteract
       </ItemPasteStep>,
     );
   }
-  if (nodeInteractions.canBePastedAsNextStep) {
+
+  if (nodeInteractions.canHaveNextStep) {
     items.push(
       <ItemPasteStep
         key="context-menu-item-paste-as-next-step"
@@ -162,7 +164,8 @@ const addCopyPasteItems = (items: ReactElement[], nodeInteractions: NodeInteract
       </ItemPasteStep>,
     );
   }
-  if (nodeInteractions.canBePastedAsSpecialChild) {
+
+  if (nodeInteractions.canHaveSpecialChildren) {
     items.push(
       <ItemPasteStep
         key="context-menu-item-paste-as-special-child"

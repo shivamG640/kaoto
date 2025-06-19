@@ -75,9 +75,6 @@ export class CamelInterceptVisualEntity
       canRemoveFlow: data.path === CamelInterceptVisualEntity.ROOT_PATH,
       canBeDisabled,
       canBeCopied: false,
-      canBePastedAsChild: false,
-      canBePastedAsNextStep: false,
-      canBePastedAsSpecialChild: false,
     };
   }
 

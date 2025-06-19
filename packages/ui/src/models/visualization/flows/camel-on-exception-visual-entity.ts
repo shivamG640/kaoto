@@ -77,9 +77,6 @@ export class CamelOnExceptionVisualEntity
       canRemoveFlow: data.path === CamelOnExceptionVisualEntity.ROOT_PATH,
       canBeDisabled,
       canBeCopied: false,
-      canBePastedAsChild: false,
-      canBePastedAsNextStep: false,
-      canBePastedAsSpecialChild: false,
     };
   }
 
