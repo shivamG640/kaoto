@@ -358,6 +358,18 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
 
       return;
     }
+
+    if (Number.isInteger(Number(last)) && !Number.isInteger(Number(penultimate))) {
+      const stepsArray = getArrayProperty(this.entityDef, pathArray.slice(0, -1).join('.'));
+
+      /** If we're in Replace mode, we need to delete the existing step */
+      const deleteCount = mode === AddStepMode.ReplaceStep ? 1 : 0;
+
+      /** Add the dragged node before the drop target */
+      stepsArray.splice(Number(last), deleteCount, defaultValue);
+
+      return;
+    }
   }
 
   private insertChildStep(
