@@ -1,0 +1,44 @@
+.rf-custom-group {
+  // position: relative je potrebné pre absolútne pozicovaný toolbar
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  background: white;
+  height: 100%;
+
+  overflow: hidden; // Zabezpečí, že sa hlavička pekne oreže podľa zaoblených rohov
+
+  &--selected {
+    border-color: #007bff;
+    box-shadow: 0 0 0 1px #007bff;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 4px 5px;
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #ddd;
+  }
+
+  &__icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    object-fit: contain;
+  }
+
+  &__label {
+    font-weight: 600;
+  }
+  .custom-node__toolbar {
+    position: fixed;
+    left: 50%;
+    top: -40px; /* or use -CanvasDefaults.STEP_TOOLBAR_HEIGHT */
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 350px;
+    height: 40px; /* or use CanvasDefaults.STEP_TOOLBAR_HEIGHT */
+    pointer-events: auto;
+  }
+}
