@@ -1,0 +1,100 @@
+@use '../Custom/custom';
+
+.custom-node {
+  @include custom.highligth {
+    &__container {
+      @include custom.container;
+
+      display: flex;
+      flex-flow: column nowrap;
+      justify-content: space-around;
+
+      &__dropTarget {
+        @include custom.drop-target;
+      }
+
+      &__image {
+        position: relative;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        border: 1px solid var(--custom-node-BorderColor);
+        border-radius: var(--custom-node-BorderRadius);
+        background-color: var(--pf-t--color--white);
+        align-self: center;
+        padding: var(--pf-t--global--spacer--sm);
+        height: 60px;
+        width: 60px;
+
+        img {
+          max-width: 100%;
+          height: 100%;
+        }
+      }
+
+      &:hover &__image,
+      [data-toolbar-open='true'] & &__image,
+      [data-selected='true'] & &__image {
+        border-color: var(--custom-node-BorderColor-hover);
+        box-shadow: var(--custom-node-Shadow);
+      }
+
+      [data-selected='true'] & &__image {
+        @include custom.selected;
+      }
+
+      [data-disabled='true'] & {
+        @include custom.disabled;
+      }
+    }
+
+    &__label {
+      @include custom.label {
+        background-color: var(--custom-node-BackgroundColor);
+        padding: 0 calc(var(--pf-t--global--spacer--xs) * 0.75);
+        border-radius: calc(var(--custom-node-BorderRadius) * 0.4);
+        text-align: center;
+        align-self: center;
+        width: 100%;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+
+        &__error {
+          color: var(--custom-node-BorderColor);
+
+          & > span:first-of-type {
+            margin-right: var(--pf-t--global--spacer--xs);
+          }
+        }
+      }
+    }
+  }
+
+  .custom-node__label {
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    text-align: center;
+
+  }
+  &__toolbar {
+    overflow: visible;
+    text-align: center;
+  }
+
+  .custom-node__toolbar {
+    position: absolute;
+    left: 50%;
+    top: -40px; /* or use -CanvasDefaults.STEP_TOOLBAR_HEIGHT */
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 350px;
+    height: 40px; /* or use CanvasDefaults.STEP_TOOLBAR_HEIGHT */
+    pointer-events: auto;
+  }
+}
