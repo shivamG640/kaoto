@@ -47,6 +47,7 @@ import { NodeContextMenuFn } from '../ContextMenu/NodeContextMenu';
 import { NODE_DRAG_TYPE } from '../customComponentUtils';
 import { AddStepIcon } from '../Edge/AddStepIcon';
 import { FloatingCircle } from '../FloatingCircle/FloatingCircle';
+import { NoBendpointsEdge } from '../NoBendingEdge';
 import { TargetAnchor } from '../target-anchor';
 import { checkNodeDropCompatibility, handleValidNodeDrop } from './CustomNodeUtils';
 
@@ -107,27 +108,27 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
     > = useMemo(
       () => ({
         item: { type: NODE_DRAG_TYPE },
-        begin: () => {
-          // Hide all edges when dragging starts
-          element
-            .getGraph()
-            .getEdges()
-            .forEach((edge) => {
-              edge.setVisible(false);
-            });
-        },
         canDrag: () => {
           return dndSettingsEnabled && canDragNode;
         },
         end(dropResult, monitor) {
           if (monitor.didDrop() && dropResult) {
+            let droppedVizNode: IVisualizationNode;
+            let droppedIntoEdge = false;
             const draggedVizNode = element.getData().vizNode as IVisualizationNode;
-            const droppedVizNode = dropResult.getData().vizNode as IVisualizationNode;
+
+            if (dropResult instanceof NoBendpointsEdge) {
+              droppedVizNode = dropResult.getTarget().getData().vizNode;
+              droppedIntoEdge = true;
+            } else {
+              droppedVizNode = dropResult.getData().vizNode as IVisualizationNode;
+            }
 
             // handle successful drop
             handleValidNodeDrop(
               draggedVizNode,
               droppedVizNode,
+              droppedIntoEdge,
               (flowId?: string) => entitiesContext?.camelResource.removeEntity(flowId ? [flowId] : undefined),
               (vn) =>
                 nodeInteractionAddonContext.getRegisteredInteractionAddons(
@@ -145,13 +146,6 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
               entitiesContext.updateEntitiesFromCamelResource();
             });
           } else {
-            // Show all edges after dropping
-            element
-              .getGraph()
-              .getEdges()
-              .forEach((edge) => {
-                edge.setVisible(true);
-              });
             element.getGraph().layout();
           }
         },
@@ -170,7 +164,6 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
         canDrop: (item, _monitor, _props) => {
           const targetNode = element;
           const draggedNode = item as Node;
-
           // Ensure that the node is not dropped onto itself
           if (draggedNode === targetNode || !vizNode?.canDropOnNode()) return false;
 

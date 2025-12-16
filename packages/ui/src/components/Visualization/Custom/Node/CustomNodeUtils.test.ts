@@ -28,21 +28,21 @@ describe('CustomNodeUtils', () => {
       (vizNode1.getId as jest.Mock).mockReturnValueOnce('route1');
       (vizNode2.getId as jest.Mock).mockReturnValueOnce('route1');
 
-      const result = getNodeDragAndDropDirection(vizNode1, vizNode2);
+      const result = getNodeDragAndDropDirection(vizNode1, vizNode2, false);
       expect(result).toBe('forward');
     });
 
     it('should return the backward based on the path', () => {
       (vizNode1.getId as jest.Mock).mockReturnValueOnce('route1');
       (vizNode2.getId as jest.Mock).mockReturnValueOnce('route1');
-      const result = getNodeDragAndDropDirection(vizNode2, vizNode1);
+      const result = getNodeDragAndDropDirection(vizNode2, vizNode1, false);
       expect(result).toBe('backward');
     });
 
     it('should return the forward based on the entity id', () => {
       (vizNode1.getId as jest.Mock).mockReturnValueOnce('route1');
       (vizNode2.getId as jest.Mock).mockReturnValueOnce('route2');
-      const result = getNodeDragAndDropDirection(vizNode2, vizNode1);
+      const result = getNodeDragAndDropDirection(vizNode2, vizNode1, false);
       expect(result).toBe('forward');
     });
 
@@ -51,7 +51,7 @@ describe('CustomNodeUtils', () => {
       const otherwisePlaceholderNode = getMockVizNode('route.from.steps.0.choice.otherwise.steps.0.placeholder');
       (whenLogNode.getId as jest.Mock).mockReturnValueOnce('route');
       (otherwisePlaceholderNode.getId as jest.Mock).mockReturnValueOnce('route');
-      const result = getNodeDragAndDropDirection(whenLogNode, otherwisePlaceholderNode);
+      const result = getNodeDragAndDropDirection(whenLogNode, otherwisePlaceholderNode, false);
       expect(result).toBe('forward');
     });
   });
@@ -60,14 +60,14 @@ describe('CustomNodeUtils', () => {
     const noopGetOnCopyAddons = jest.fn().mockReturnValue([]);
 
     it('should paste the dragged node as AppendStep when direction is forward', () => {
-      handleValidNodeDrop(vizNode1, vizNode2, jest.fn(), noopGetOnCopyAddons);
+      handleValidNodeDrop(vizNode1, vizNode2, false, jest.fn(), noopGetOnCopyAddons);
 
       expect(vizNode2.pasteBaseEntityStep).toHaveBeenCalledWith(vizNode1.getCopiedContent(), AddStepMode.AppendStep);
       expect(vizNode1.removeChild).toHaveBeenCalled();
     });
 
     it('should paste the dragged node as PrependStep when direction is backward', () => {
-      handleValidNodeDrop(vizNode2, vizNode1, jest.fn(), noopGetOnCopyAddons);
+      handleValidNodeDrop(vizNode2, vizNode1, false, jest.fn(), noopGetOnCopyAddons);
 
       expect(vizNode1.pasteBaseEntityStep).toHaveBeenCalledWith(vizNode2.getCopiedContent(), AddStepMode.PrependStep);
       expect(vizNode2.removeChild).toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('CustomNodeUtils', () => {
         canRemoveFlow: true,
       });
       const removeFlowMock = jest.fn();
-      handleValidNodeDrop(interceptVizNode, interceptRouteConfigVizNode, removeFlowMock, noopGetOnCopyAddons);
+      handleValidNodeDrop(interceptVizNode, interceptRouteConfigVizNode, false, removeFlowMock, noopGetOnCopyAddons);
 
       expect(interceptRouteConfigVizNode.pasteBaseEntityStep).toHaveBeenCalledWith(
         interceptVizNode.getCopiedContent(),
@@ -92,7 +92,7 @@ describe('CustomNodeUtils', () => {
 
     it('should not paste the dragged node if the dragged node getCopiedContent() returns undefined', () => {
       (vizNode1.getCopiedContent as jest.Mock).mockReturnValueOnce(undefined);
-      handleValidNodeDrop(vizNode1, vizNode2, jest.fn(), noopGetOnCopyAddons);
+      handleValidNodeDrop(vizNode1, vizNode2, false, jest.fn(), noopGetOnCopyAddons);
 
       expect(vizNode2.pasteBaseEntityStep).not.toHaveBeenCalled();
       expect(vizNode1.removeChild).not.toHaveBeenCalled();
@@ -121,7 +121,7 @@ describe('CustomNodeUtils', () => {
 
       const getOnCopyAddons = jest.fn().mockReturnValue([mockOnCopyAddon]);
 
-      handleValidNodeDrop(datamapperVizNode, vizNode2, jest.fn(), getOnCopyAddons);
+      handleValidNodeDrop(datamapperVizNode, vizNode2, false, jest.fn(), getOnCopyAddons);
 
       expect(getOnCopyAddons).toHaveBeenCalledWith(datamapperVizNode);
       expect(mockOnCopyAddon.callback).toHaveBeenCalledWith({
@@ -141,7 +141,7 @@ describe('CustomNodeUtils', () => {
 
       const getOnCopyAddons = jest.fn().mockReturnValue([mockOnCopyAddon]);
 
-      handleValidNodeDrop(vizNode1, vizNode2, jest.fn(), getOnCopyAddons);
+      handleValidNodeDrop(vizNode1, vizNode2, false, jest.fn(), getOnCopyAddons);
 
       expect(vizNode2.pasteBaseEntityStep).not.toHaveBeenCalled();
       expect(vizNode1.removeChild).not.toHaveBeenCalled();

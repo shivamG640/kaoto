@@ -6,6 +6,16 @@
       stroke-width: 10px;
       stroke: transparent;
       fill: none;
+
+      &__dropTarget {
+        stroke: var(--pf-topology__edge--Stroke);
+        stroke-opacity: 0.5;
+      }
+
+      &__possibleDropTargets {
+        stroke: var(--pf-topology__edge--Stroke);
+        stroke-opacity: 0.1;
+      }
     }
 
     &__body {
