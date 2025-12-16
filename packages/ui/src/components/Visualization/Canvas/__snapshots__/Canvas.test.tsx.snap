@@ -264,7 +264,7 @@ exports[`Canvas Catalog button should NOT be present if \`CatalogModalContext\` 
                                 d="M45 37.5 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(0, 0) rotate(180)"
                               >
                                 <polygon
@@ -333,7 +333,7 @@ exports[`Canvas Catalog button should NOT be present if \`CatalogModalContext\` 
                                 d="M45 37.5 L45 -80"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(45, -66) rotate(270)"
                               >
                                 <polygon
@@ -402,7 +402,7 @@ exports[`Canvas Catalog button should NOT be present if \`CatalogModalContext\` 
                                 d="M45 37.5 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(0, 0) rotate(180)"
                               >
                                 <polygon
@@ -471,7 +471,7 @@ exports[`Canvas Catalog button should NOT be present if \`CatalogModalContext\` 
                                 d="M45 37.5 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(0, 0) rotate(180)"
                               >
                                 <polygon
@@ -540,7 +540,7 @@ exports[`Canvas Catalog button should NOT be present if \`CatalogModalContext\` 
                                 d="M45 -80 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(45, 23.5) rotate(90)"
                               >
                                 <polygon
@@ -1092,7 +1092,7 @@ exports[`Canvas Catalog button should be present if \`CatalogModalContext\` is p
                                 d="M325 112.5 L325 267.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(325, 253.5) rotate(90)"
                               >
                                 <polygon
@@ -1161,7 +1161,7 @@ exports[`Canvas Catalog button should be present if \`CatalogModalContext\` is p
                                 d="M325 267.5 L325 380"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(325, 366) rotate(90)"
                               >
                                 <polygon
@@ -1230,7 +1230,7 @@ exports[`Canvas Catalog button should be present if \`CatalogModalContext\` is p
                                 d="M450 497.5 L450 652.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(450, 638.5) rotate(90)"
                               >
                                 <polygon
@@ -1299,7 +1299,7 @@ exports[`Canvas Catalog button should be present if \`CatalogModalContext\` is p
                                 d="M450 652.5 L450 807.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(450, 793.5) rotate(90)"
                               >
                                 <polygon
@@ -1368,7 +1368,7 @@ exports[`Canvas Catalog button should be present if \`CatalogModalContext\` is p
                                 d="M325 925 L325 1037.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(325, 1023.5) rotate(90)"
                               >
                                 <polygon
@@ -2807,7 +2807,7 @@ exports[`Canvas should render correctly 1`] = `
                                 d="M325 112.5 L325 267.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(325, 253.5) rotate(90)"
                               >
                                 <polygon
@@ -2876,7 +2876,7 @@ exports[`Canvas should render correctly 1`] = `
                                 d="M325 267.5 L325 380"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(325, 366) rotate(90)"
                               >
                                 <polygon
@@ -2945,7 +2945,7 @@ exports[`Canvas should render correctly 1`] = `
                                 d="M450 497.5 L450 652.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(450, 638.5) rotate(90)"
                               >
                                 <polygon
@@ -3014,7 +3014,7 @@ exports[`Canvas should render correctly 1`] = `
                                 d="M450 652.5 L450 807.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(450, 793.5) rotate(90)"
                               >
                                 <polygon
@@ -3083,7 +3083,7 @@ exports[`Canvas should render correctly 1`] = `
                                 d="M325 925 L325 1037.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(325, 1023.5) rotate(90)"
                               >
                                 <polygon
@@ -3717,7 +3717,7 @@ exports[`Canvas should render correctly with more routes  1`] = `
                                 d="M45 37.5 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(0, 0) rotate(180)"
                               >
                                 <polygon
@@ -3786,7 +3786,7 @@ exports[`Canvas should render correctly with more routes  1`] = `
                                 d="M45 37.5 L45 -80"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(45, -66) rotate(270)"
                               >
                                 <polygon
@@ -3855,7 +3855,7 @@ exports[`Canvas should render correctly with more routes  1`] = `
                                 d="M45 37.5 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(0, 0) rotate(180)"
                               >
                                 <polygon
@@ -3924,7 +3924,7 @@ exports[`Canvas should render correctly with more routes  1`] = `
                                 d="M45 37.5 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(0, 0) rotate(180)"
                               >
                                 <polygon
@@ -3993,7 +3993,7 @@ exports[`Canvas should render correctly with more routes  1`] = `
                                 d="M45 -80 L45 37.5"
                               />
                               <g
-                                class="pf-topology-connector-arrow pf-topology__edge"
+                                class="pf-topology-connector-arrow custom-edge__connector"
                                 transform="translate(45, 23.5) rotate(90)"
                               >
                                 <polygon
