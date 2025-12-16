@@ -18,7 +18,6 @@ import {
   Layer,
   Node,
   observer,
-  Rect,
   TOP_LAYER,
   useAnchor,
   useCombineRefs,
@@ -29,7 +28,7 @@ import {
   withSelection,
 } from '@patternfly/react-topology';
 import clsx from 'clsx';
-import { FunctionComponent, useContext, useMemo, useRef } from 'react';
+import { FunctionComponent, useContext, useMemo } from 'react';
 
 import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
 import { useProcessorIcon } from '../../../../hooks/processor-icon.hook';
@@ -47,6 +46,7 @@ import { NodeContextMenuFn } from '../ContextMenu/NodeContextMenu';
 import { NODE_DRAG_TYPE } from '../customComponentUtils';
 import { AddStepIcon } from '../Edge/AddStepIcon';
 import { FloatingCircle } from '../FloatingCircle/FloatingCircle';
+import { NoBendpointsEdge } from '../NoBendingEdge';
 import { TargetAnchor } from '../target-anchor';
 import { checkNodeDropCompatibility, handleValidNodeDrop } from './CustomNodeUtils';
 
@@ -83,7 +83,6 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       CanvasDefaults.HOVER_DELAY_OUT,
     );
     const childCount = element.getAllNodeChildren().length;
-    const boxRef = useRef<Rect | null>(null);
     const shouldShowToolbar =
       settingsAdapter.getSettings().nodeToolbarTrigger === NodeToolbarTrigger.onHover
         ? isGHover || isToolbarHover || selected
@@ -102,32 +101,32 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       DragObjectWithType,
       DragSpecOperationType<EditableDragOperationType>,
       GraphElement,
-      object,
+      { node: GraphElement | undefined },
       GraphElementProps
     > = useMemo(
       () => ({
         item: { type: NODE_DRAG_TYPE },
-        begin: () => {
-          // Hide all edges when dragging starts
-          element
-            .getGraph()
-            .getEdges()
-            .forEach((edge) => {
-              edge.setVisible(false);
-            });
-        },
         canDrag: () => {
           return dndSettingsEnabled && canDragNode;
         },
         end(dropResult, monitor) {
           if (monitor.didDrop() && dropResult) {
+            let droppedVizNode: IVisualizationNode;
+            let droppedIntoEdge = false;
             const draggedVizNode = element.getData().vizNode as IVisualizationNode;
-            const droppedVizNode = dropResult.getData().vizNode as IVisualizationNode;
+
+            if (dropResult instanceof NoBendpointsEdge) {
+              droppedVizNode = dropResult.getTarget().getData().vizNode;
+              droppedIntoEdge = true;
+            } else {
+              droppedVizNode = dropResult.getData().vizNode as IVisualizationNode;
+            }
 
             // handle successful drop
             handleValidNodeDrop(
               draggedVizNode,
               droppedVizNode,
+              droppedIntoEdge,
               (flowId?: string) => entitiesContext?.camelResource.removeEntity(flowId ? [flowId] : undefined),
               (vn) =>
                 nodeInteractionAddonContext.getRegisteredInteractionAddons(
@@ -145,16 +144,12 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
               entitiesContext.updateEntitiesFromCamelResource();
             });
           } else {
-            // Show all edges after dropping
-            element
-              .getGraph()
-              .getEdges()
-              .forEach((edge) => {
-                edge.setVisible(true);
-              });
             element.getGraph().layout();
           }
         },
+        collect: (monitor) => ({
+          node: monitor.getItem(),
+        }),
       }),
       [canDragNode, dndSettingsEnabled, element, entitiesContext, nodeInteractionAddonContext],
     );
@@ -170,7 +165,6 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
         canDrop: (item, _monitor, _props) => {
           const targetNode = element;
           const draggedNode = item as Node;
-
           // Ensure that the node is not dropped onto itself
           if (draggedNode === targetNode || !vizNode?.canDropOnNode()) return false;
 
@@ -196,16 +190,15 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
       [element, vizNode, entitiesContext, catalogModalContext],
     );
 
-    const [_, dragNodeRef] = useDragNode(nodeDragSourceSpec);
+    const [dragNodeProps, dragNodeRef] = useDragNode(nodeDragSourceSpec);
     const [dndDropProps, dndDropRef] = useDndDrop(customNodeDropTargetSpec);
     const gCombinedRef = useCombineRefs<SVGGElement>(gHoverRef, dragNodeRef);
+    const isDraggingNode = dragNodeProps.node?.getId() === element.getId();
 
-    if (!dndDropProps.droppable || !boxRef.current) {
-      boxRef.current = element.getBounds();
-    }
-    const labelX = (boxRef.current.width - CanvasDefaults.DEFAULT_LABEL_WIDTH) / 2;
+    const box = element.getBounds();
+    const labelX = (box.width - CanvasDefaults.DEFAULT_LABEL_WIDTH) / 2;
     const toolbarWidth = CanvasDefaults.STEP_TOOLBAR_WIDTH;
-    const toolbarX = (boxRef.current.width - toolbarWidth) / 2;
+    const toolbarX = (box.width - toolbarWidth) / 2;
     const toolbarY = CanvasDefaults.STEP_TOOLBAR_HEIGHT * -1;
 
     if (!vizNode) {
@@ -226,12 +219,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
           onClick={onSelect}
           onContextMenu={onContextMenu}
         >
-          <foreignObject
-            data-nodelabel={label}
-            width={boxRef.current.width}
-            height={boxRef.current.height}
-            ref={dndDropRef}
-          >
+          <foreignObject data-nodelabel={label} width={box.width} height={box.height} ref={dndDropRef}>
             <div
               data-testid={`${vizNode.id}`}
               className={clsx('custom-node__container', {
@@ -240,6 +228,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
                   dndDropProps.canDrop && dndDropProps.droppable && !dndDropProps.hover,
                 'custom-node__container__draggable': dndSettingsEnabled && canDragNode,
                 'custom-node__container__nonDraggable': dndSettingsEnabled && !canDragNode,
+                'custom-node__container__draggedNode': isDraggingNode,
               })}
             >
               <div title={tooltipContent} className="custom-node__container__image">
@@ -268,26 +257,28 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
             </div>
           </foreignObject>
 
-          <foreignObject
-            x={labelX}
-            y={boxRef.current.height - 1}
-            width={CanvasDefaults.DEFAULT_LABEL_WIDTH}
-            height={CanvasDefaults.DEFAULT_LABEL_HEIGHT}
-            className="custom-node__label"
-          >
-            <div
-              className={clsx('custom-node__label__text', {
-                'custom-node__label__text__error': doesHaveWarnings,
-              })}
+          {!isDraggingNode && (
+            <foreignObject
+              x={labelX}
+              y={box.height - 1}
+              width={CanvasDefaults.DEFAULT_LABEL_WIDTH}
+              height={CanvasDefaults.DEFAULT_LABEL_HEIGHT}
+              className="custom-node__label"
             >
-              {doesHaveWarnings && (
-                <Icon status="danger" title={validationText} data-warning={doesHaveWarnings}>
-                  <ExclamationCircleIcon />
-                </Icon>
-              )}
-              <span title={label}>{label}</span>
-            </div>
-          </foreignObject>
+              <div
+                className={clsx('custom-node__label__text', {
+                  'custom-node__label__text__error': doesHaveWarnings,
+                })}
+              >
+                {doesHaveWarnings && (
+                  <Icon status="danger" title={validationText} data-warning={doesHaveWarnings}>
+                    <ExclamationCircleIcon />
+                  </Icon>
+                )}
+                <span title={label}>{label}</span>
+              </div>
+            </foreignObject>
+          )}
 
           {!dndDropProps.droppable && shouldShowToolbar && (
             <Layer id={TOP_LAYER}>
@@ -311,8 +302,8 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
 
           {!dndDropProps.droppable && shouldShowAddStep && (
             <foreignObject
-              x={boxRef.current.width - 8}
-              y={(boxRef.current.height - CanvasDefaults.ADD_STEP_ICON_SIZE) / 2}
+              x={box.width - 8}
+              y={(box.height - CanvasDefaults.ADD_STEP_ICON_SIZE) / 2}
               width={CanvasDefaults.ADD_STEP_ICON_SIZE}
               height={CanvasDefaults.ADD_STEP_ICON_SIZE}
             >
