@@ -3,8 +3,6 @@
     from:
       uri: timer:template?period=1000
       steps:
-        - log:
-            message: ${body}
         - choice:
             otherwise:
               steps:
@@ -24,3 +22,5 @@
                         expression: foo
                 simple:
                   expression: ${header.foo} == 1
+        - log:
+            message: ${body}

@@ -5,7 +5,7 @@ import React from 'react';
 import { CatalogKind, createVisualizationNode, IVisualizationNode } from '../../../../models';
 import { TestProvidersWrapper } from '../../../../stubs';
 import { ControllerService } from '../../Canvas/controller.service';
-import { PlaceholderNode, PlaceholderNodeObserver } from './PlaceholderNode';
+import { CustomGroupExpanded } from './CustomGroupExpanded';
 
 const mockRef = { current: null };
 
@@ -14,19 +14,18 @@ jest.mock('@patternfly/react-topology', () => {
   return {
     ...actual,
     Layer: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-    useDndDrop: () => [
-      { droppable: false, hover: false, canDrop: false, dragItemType: undefined, dragItem: undefined },
-      mockRef,
-    ],
+    useDragNode: () => [{ node: undefined, dragEvent: undefined }, mockRef],
+    useDndDrop: () => [{ droppable: false, hover: false, canDrop: false }, mockRef],
     useAnchor: () => {},
+    useHover: () => [false, mockRef],
   };
 });
 
-jest.mock('../hooks/replace-step.hook', () => ({
-  useReplaceStep: () => ({ onReplaceNode: jest.fn() }),
+jest.mock('../../../../hooks/processor-icon.hook', () => ({
+  useProcessorIcon: () => ({ Icon: null, description: '' }),
 }));
 
-describe('PlaceholderNode', () => {
+describe('CustomGroupExpanded', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -37,9 +36,9 @@ describe('PlaceholderNode', () => {
 
     expect(() => {
       act(() => {
-        render(<PlaceholderNodeObserver element={edgeElement} />);
+        render(<CustomGroupExpanded element={edgeElement} />);
       });
-    }).toThrow('PlaceholderNode must be used only on Node elements');
+    }).toThrow('CustomGroupExpanded must be used only on Node elements');
   });
 
   it('should return null when element has no vizNode in data', () => {
@@ -57,24 +56,25 @@ describe('PlaceholderNode', () => {
       <Provider>
         <VisualizationProvider controller={controller}>
           <ElementContext.Provider value={element}>
-            <PlaceholderNode element={element} />
+            <CustomGroupExpanded element={element} />
           </ElementContext.Provider>
         </VisualizationProvider>
       </Provider>,
     );
 
-    expect(container.querySelector('[data-testid^="placeholder-node__"]')).not.toBeInTheDocument();
+    expect(container).toMatchSnapshot();
   });
 
-  it('should render placeholder container with data-testid when vizNode is provided', () => {
-    const vizNode = createVisualizationNode('route.from.steps.1.placeholder', {
+  it('should render group container with data-testid when vizNode is provided', () => {
+    const vizNode = createVisualizationNode('choice-1', {
       catalogKind: CatalogKind.Processor,
-      name: 'placeholder',
-      path: 'route.from.steps.1.placeholder',
-      isPlaceholder: true,
+      name: 'choice',
+      path: 'route.from.steps.0.choice',
     }) as IVisualizationNode;
-    jest.spyOn(vizNode, 'getNodeLabel').mockReturnValue('placeholder');
-    jest.spyOn(vizNode, 'getId').mockReturnValue('route-1234');
+    jest.spyOn(vizNode, 'getNodeLabel').mockReturnValue('Choice');
+    jest.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(undefined);
+    jest.spyOn(vizNode, 'getNodeValidationText').mockReturnValue(undefined);
+    jest.spyOn(vizNode, 'getTooltipContent').mockReturnValue('Choice');
 
     const parentElement = new BaseGraph();
     const element = new BaseNode();
@@ -83,7 +83,8 @@ describe('PlaceholderNode', () => {
     element.setController(controller);
     element.setParent(parentElement);
     jest.spyOn(element, 'getData').mockReturnValue({ vizNode });
-    jest.spyOn(element, 'getId').mockReturnValue('node-placeholder');
+    jest.spyOn(element, 'getAllNodeChildren').mockReturnValue([]);
+    jest.spyOn(element, 'getId').mockReturnValue('node-choice-1');
 
     const { Provider } = TestProvidersWrapper();
 
@@ -91,13 +92,14 @@ describe('PlaceholderNode', () => {
       <Provider>
         <VisualizationProvider controller={controller}>
           <ElementContext.Provider value={element}>
-            <PlaceholderNode element={element} />
+            <CustomGroupExpanded element={element} />
           </ElementContext.Provider>
         </VisualizationProvider>
       </Provider>,
     );
 
-    expect(screen.getByTestId('placeholder-node__route.from.steps.1.placeholder')).toBeInTheDocument();
-    expect(screen.getByTitle('Add step')).toBeInTheDocument();
+    const group = screen.getByTestId('custom-group__choice-1');
+    expect(group).toBeInTheDocument();
+    expect(group).toHaveAttribute('data-grouplabel', 'Choice');
   });
 });
