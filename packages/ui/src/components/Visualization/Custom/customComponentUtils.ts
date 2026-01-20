@@ -1,20 +1,11 @@
-import { DropTargetSpec, Edge, EdgeModel, GraphElement, GraphElementProps } from '@patternfly/react-topology';
+import { Edge, EdgeModel } from '@patternfly/react-topology';
 
 import { CatalogModalContextValue } from '../../../dynamic-catalog/catalog-modal.provider';
 import { AddStepMode, IVisualizationNode } from '../../../models/visualization/base-visual-entity';
 import { EntitiesContextResult } from '../../../providers';
 
 const NODE_DRAG_TYPE = '#node#';
-
-const customGroupExpandedDropTargetSpec: DropTargetSpec<GraphElement, unknown, object, GraphElementProps> = {
-  accept: ['#node#'],
-  canDrop: () => {
-    return false;
-  },
-  collect: (monitor) => ({
-    droppable: monitor.isDragging(),
-  }),
-};
+const GROUP_DRAG_TYPE = '#group#';
 
 const canDropOnEdge = (
   draggedVizNode: IVisualizationNode,
@@ -40,4 +31,4 @@ const canDropOnEdge = (
   return catalogModalContext.checkCompatibility(draggedVizNode.getCopiedContent()!.name, filter) ?? false;
 };
 
-export { canDropOnEdge, customGroupExpandedDropTargetSpec, NODE_DRAG_TYPE };
+export { canDropOnEdge, GROUP_DRAG_TYPE, NODE_DRAG_TYPE };
