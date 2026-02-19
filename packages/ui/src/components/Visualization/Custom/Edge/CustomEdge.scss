@@ -6,6 +6,11 @@
       stroke-width: 10px;
       stroke: transparent;
       fill: none;
+
+      &__possibleDropTargets {
+        stroke: var(--pf-topology__edge--Stroke);
+        stroke-opacity: 0.3;
+      }
     }
 
     &__body {
@@ -14,6 +19,11 @@
 
       &__validDropTarget {
         stroke: var(--custom-component-dropTarget);
+        stroke-dasharray: 5, 5;
+        stroke-width: 3;
+      }
+
+      &__possibleDropTargets {
         stroke-dasharray: 5, 5;
         stroke-width: 3;
       }
