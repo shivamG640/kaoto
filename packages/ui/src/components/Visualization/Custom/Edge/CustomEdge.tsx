@@ -142,13 +142,7 @@ export const CustomEdge: FunctionComponent<CustomEdgeProps> = observer(({ elemen
   return (
     <Layer id={refreshEdge ? TOP_LAYER : undefined}>
       <g className="custom-edge" ref={dndDropRef}>
-        <path
-          className={clsx('custom-edge__background', {
-            'custom-edge__background__possibleDropTargets':
-              dndDropProps.canDrop && dndDropProps.droppable && !dndDropProps.hover,
-          })}
-          d={edgeDRef.current}
-        />
+        <path className="custom-edge__background" d={edgeDRef.current} />
         <path
           className={clsx('custom-edge__body', {
             'custom-edge__body__validDropTarget': dndDropProps.droppable && dndDropProps.hover && dndDropProps.canDrop,
@@ -160,7 +154,10 @@ export const CustomEdge: FunctionComponent<CustomEdgeProps> = observer(({ elemen
         <ConnectorArrow
           isTarget
           className={clsx('custom-edge__connector', {
-            'custom-edge__connector__validDropTarget': dndDropProps.hover && dndDropProps.canDrop,
+            'custom-edge__connector__validDropTarget':
+              dndDropProps.droppable && dndDropProps.hover && dndDropProps.canDrop,
+            'custom-edge__connector__possibleDropTargets':
+              dndDropProps.canDrop && dndDropProps.droppable && !dndDropProps.hover,
           })}
           startPoint={startPointRef.current}
           endPoint={endPointRef.current}
