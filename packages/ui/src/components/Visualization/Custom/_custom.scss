@@ -22,6 +22,7 @@
   --custom-node-BackgroundColor: var(--pf-t--global--background--color--primary--default);
   --custom-node-BorderRadius: 10px;
   --custom-node-Shadow: var(--pf-t--global--box-shadow--md);
+  --custom-node-border-width: 5px;
 
   &[data-selected='true'] {
     --custom-node-BorderColor: var(--pf-t--global--color--brand--default);
@@ -72,16 +73,6 @@
 
     @content;
   }
-}
-
-@mixin drop-target {
-  border: 3px dashed var(--custom-component-dropTarget);
-  border-radius: var(--custom-node-BorderRadius);
-}
-
-@mixin possible-drop-targets {
-  border: 2px dashed var(--custom-node-BorderColor-possibleDropTargets);
-  border-radius: var(--custom-node-BorderRadius);
 }
 
 @mixin drag-node {
