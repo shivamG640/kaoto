@@ -283,9 +283,7 @@ describe('CamelRouteResource', () => {
       });
 
       it('should fall back to default ordering when insertAfterEntityId is not found', () => {
-        const resource = new CamelRouteResource([
-          { from: { uri: 'direct:route1', steps: [] } },
-        ]);
+        const resource = new CamelRouteResource([{ from: { uri: 'direct:route1', steps: [] } }]);
 
         const newId = resource.addNewEntity(EntityType.Route, undefined, 'non-existing-id');
 
@@ -295,9 +293,7 @@ describe('CamelRouteResource', () => {
       });
 
       it('should fall back to default ordering when insertAfterEntityId is not provided', () => {
-        const resource = new CamelRouteResource([
-          { from: { uri: 'direct:route1', steps: [] } },
-        ]);
+        const resource = new CamelRouteResource([{ from: { uri: 'direct:route1', steps: [] } }]);
 
         const newId = resource.addNewEntity(EntityType.Route);
 
