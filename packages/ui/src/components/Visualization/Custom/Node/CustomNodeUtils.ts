@@ -69,31 +69,43 @@ export const handleValidNodeDrop = (
 
   if (!isDefined(draggedNodeContent)) return;
 
-  /** Handle the drag and drop operation based on the direction differently:
+  // Drop onto special placeholder
+  const isSpecialChildPlaceholder =
+    droppedVizNode.data?.isPlaceholder &&
+    droppedVizNode.data?.name !== 'placeholder' &&
+    droppedVizNode.getParentNode()?.getNodeInteraction().canHaveSpecialChildren;
+  if (isSpecialChildPlaceholder && !(dropResult instanceof NoBendpointsEdge)) {
+    const parentVizNode = droppedVizNode.getParentNode();
+    if (!parentVizNode) return;
+
+    parentVizNode.pasteBaseEntityStep(draggedNodeContent, AddStepMode.InsertSpecialChildStep, true);
+    draggedVizNode.removeChild();
+  } else {
+    /** Handle the drag and drop operation based on the direction differently:
         for forward direction we append the step to the dropped node, then remove the dragged node
         for backward direction we remove the dragged node first, then prepend the step to the dropped node
     */
-  switch (getNodeDragAndDropDirection(draggedVizNode, droppedVizNode, droppedIntoEdge)) {
-    case 'forward': {
-      droppedVizNode.pasteBaseEntityStep(
-        draggedNodeContent,
-        droppedIntoEdge ? AddStepMode.PrependStep : AddStepMode.AppendStep,
-      );
-      const draggedVizNodeinteraction = draggedVizNode.getNodeInteraction();
-      if (draggedVizNodeinteraction.canRemoveStep) {
-        draggedVizNode.removeChild();
-      } else if (draggedVizNodeinteraction.canRemoveFlow) {
-        const flowId = draggedVizNode?.getId();
-        entitiesContext.camelResource.removeEntity(flowId ? [flowId] : undefined);
+    switch (getNodeDragAndDropDirection(draggedVizNode, droppedVizNode, droppedIntoEdge)) {
+      case 'forward': {
+        droppedVizNode.pasteBaseEntityStep(
+          draggedNodeContent,
+          droppedIntoEdge ? AddStepMode.PrependStep : AddStepMode.AppendStep,
+        );
+        const draggedVizNodeinteraction = draggedVizNode.getNodeInteraction();
+        if (draggedVizNodeinteraction.canRemoveStep) {
+          draggedVizNode.removeChild();
+        } else if (draggedVizNodeinteraction.canRemoveFlow) {
+          const flowId = draggedVizNode?.getId();
+          entitiesContext.camelResource.removeEntity(flowId ? [flowId] : undefined);
+        }
+        break;
       }
-      break;
+      case 'backward':
+        draggedVizNode.removeChild();
+        droppedVizNode.pasteBaseEntityStep(draggedNodeContent, AddStepMode.PrependStep);
+        break;
     }
-    case 'backward':
-      draggedVizNode.removeChild();
-      droppedVizNode.pasteBaseEntityStep(draggedNodeContent, AddStepMode.PrependStep);
-      break;
   }
-
   // Set an empty model to clear the graph
   draggedElement.getController().fromModel({
     nodes: [],
@@ -113,8 +125,26 @@ export const checkNodeDropCompatibility = (
   const targetVizNodeContent = droppedVizNode.getCopiedContent();
   if (!isDefined(droppedVizNodeContent) || !isDefined(targetVizNodeContent)) return false;
 
-  if (droppedVizNode.data.isPlaceholder && droppedVizNode.getPreviousNode() !== draggedVizNode) {
-    return validate(AddStepMode.ReplaceStep, droppedVizNode, droppedVizNodeContent.name);
+  if (droppedVizNode.data.isPlaceholder) {
+    if (droppedVizNode.data.name === draggedVizNode?.data.name) {
+      const draggedParent = draggedVizNode.getParentNode();
+      const droppedParent = droppedVizNode.getParentNode();
+      if (draggedParent?.id === droppedParent?.id && draggedParent?.getId() === droppedParent?.getId()) return false;
+
+      return true;
+    }
+
+    if (droppedVizNode.data.name === 'placeholder' && droppedVizNode.getPreviousNode() !== draggedVizNode) {
+      if (
+        droppedVizNode.data.path?.includes(draggedVizNode.data.path ?? '') &&
+        droppedVizNode.getId() === draggedVizNode.getId()
+      )
+        return false;
+
+      return validate(AddStepMode.ReplaceStep, droppedVizNode, droppedVizNodeContent.name);
+    }
+
+    return false;
   }
 
   // validation for special children nodes in case of Route Entity

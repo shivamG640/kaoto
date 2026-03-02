@@ -25,7 +25,7 @@ import { FunctionComponent, useContext, useMemo, useRef } from 'react';
 
 import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
 import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityContext';
-import { AddStepMode, IVisualizationNode } from '../../../../models';
+import { AddStepMode, CatalogKind, IVisualizationNode } from '../../../../models';
 import { SettingsContext } from '../../../../providers/settings.provider';
 import { CanvasDefaults } from '../../Canvas/canvas.defaults';
 import { CanvasNode } from '../../Canvas/canvas.models';
@@ -112,8 +112,7 @@ const PlaceholderNodeInner: FunctionComponent<PlaceholderNodeInnerProps> = obser
   const entitiesContext = useEntityContext();
   const catalogModalContext = useContext(CatalogModalContext);
   const label = vizNode?.getNodeLabel(settingsAdapter.getSettings().nodeLabel);
-  const updatedLabel = label === 'placeholder' ? 'Add step' : label;
-  const tooltipContent = 'Click to add a step';
+  const updatedLabel = label === 'placeholder' ? 'Add step' : `Add ${label}`;
   const boxRef = useRef<Rect | null>(null);
   const boxXRef = useRef<number | null>(null);
   const boxYRef = useRef<number | null>(null);
@@ -126,7 +125,19 @@ const PlaceholderNodeInner: FunctionComponent<PlaceholderNodeInnerProps> = obser
     return null;
   }
   const { onReplaceNode } = useReplaceStep(vizNode);
-  const { onInsertStep } = useInsertStep(vizNode, AddStepMode.InsertSpecialChildStep);
+  const isSpecialChildPlaceholder = vizNode.data.name !== 'placeholder';
+  const parentVizNode = vizNode.getParentNode();
+  const insertStepTargetNode = isSpecialChildPlaceholder ? (parentVizNode ?? vizNode) : vizNode;
+  const insertStepOptions = isSpecialChildPlaceholder
+    ? {
+        predefinedComponent: { name: vizNode.data.name, type: CatalogKind.Processor },
+        insertAtStart: true,
+      }
+    : undefined;
+  const { onInsertStep } = useInsertStep(insertStepTargetNode, AddStepMode.InsertSpecialChildStep, insertStepOptions);
+  const tooltipContent = isSpecialChildPlaceholder
+    ? `Click to add ${vizNode?.data.name} branch`
+    : 'Click to add a step';
 
   const placeholderNodeDropTargetSpec: DropTargetSpec<
     GraphElement,
@@ -144,7 +155,7 @@ const PlaceholderNodeInner: FunctionComponent<PlaceholderNodeInnerProps> = obser
       accept: [NODE_DRAG_TYPE, GROUP_DRAG_TYPE],
       canDrop: (item, _monitor, _props) => {
         return checkNodeDropCompatibility(
-          (item as Node).getData()?.vizNode,
+          (item as Node).getData()?.vizNode as IVisualizationNode,
           vizNode,
           (mode: AddStepMode, filterNode: IVisualizationNode, compatibilityCheckNodeName: string) => {
             const filter = entitiesContext.camelResource.getCompatibleComponents(
@@ -168,7 +179,6 @@ const PlaceholderNodeInner: FunctionComponent<PlaceholderNodeInnerProps> = obser
   );
 
   const [dndDropProps, dndDropRef] = useDndDrop(placeholderNodeDropTargetSpec);
-  const isSpecialChildPlaceholder = vizNode.data.name === 'placeholder-special-child';
   const isDraggingGroupType = dndDropProps.dragItemType === GROUP_DRAG_TYPE;
   const isDraggingNodeType = dndDropProps.dragItemType === NODE_DRAG_TYPE;
   const draggedGroupVizNode = dndDropProps.dragItem?.getData().vizNode;

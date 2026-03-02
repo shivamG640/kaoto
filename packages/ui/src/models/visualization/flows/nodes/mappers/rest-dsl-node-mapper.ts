@@ -30,19 +30,6 @@ export class RestDslNodeMapper extends BaseNodeMapper {
       });
     });
 
-    const isEmptyRest = (vizNode.getChildren() ?? []).length === 0;
-
-    if (isEmptyRest) {
-      const placeholderNode = createVisualizationNode(`${path}.placeholder`, {
-        catalogKind: CatalogKind.Pattern,
-        name: 'placeholder-special-child',
-        isPlaceholder: true,
-        processorName: REST_ELEMENT_NAME,
-        path: 'rest.placeholder',
-      });
-      vizNode.addChild(placeholderNode);
-    }
-
     return vizNode;
   }
 }
