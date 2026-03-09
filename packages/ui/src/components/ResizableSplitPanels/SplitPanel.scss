@@ -1,0 +1,23 @@
+.split-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+
+  .pf-v6-c-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  [class*='panel__main']:not([class*='body']) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  [class*='panel__main-body'] {
+    flex: 1;
+    overflow: auto;
+  }
+}
