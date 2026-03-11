@@ -1,13 +1,14 @@
 import './RestDslEditorPage.scss';
 
 import { TrashCan } from '@carbon/icons-react';
-import { Button, Tag, TreeNode, TreeView } from '@carbon/react';
+import { Button, TreeNode, TreeView } from '@carbon/react';
 import { CanvasFormTabsProvider, KaotoForm } from '@kaoto/forms';
 import { FunctionComponent, useCallback, useState } from 'react';
 
 import { customFieldsFactoryfactory } from '../../components/Visualization/Canvas/Form/fields/custom-fields-factory';
 import { SuggestionRegistrar } from '../../components/Visualization/Canvas/Form/suggestions/SuggestionsProvider';
 import { useEntityContext } from '../../hooks/useEntityContext/useEntityContext';
+import { MethodBadge } from './components/MethodBadge';
 import { restToTree } from './rest-to-tree';
 
 export const RestDslEditorPage: FunctionComponent = () => {
@@ -16,8 +17,8 @@ export const RestDslEditorPage: FunctionComponent = () => {
   const restTreeNodes = restToTree(visualEntities);
 
   const selectedEntity = visualEntities.find((entity) => entity.id === selectedElement?.entityId);
-  const schema = selectedEntity?.getNodeSchema(selectedEntity.getRootPath());
-  const model = selectedEntity?.getNodeDefinition(selectedEntity.getRootPath());
+  const schema = selectedEntity?.getNodeSchema(selectedElement?.path);
+  const model = selectedEntity?.getNodeDefinition(selectedElement?.path);
   const omitFields = selectedEntity?.getOmitFormFields();
 
   const handleOnChangeIndividualProp = useCallback(
@@ -44,7 +45,7 @@ export const RestDslEditorPage: FunctionComponent = () => {
             <TreeNode
               isExpanded
               key={node.id}
-              label={node.label}
+              label={node.label?.toUpperCase() + ' ' + node.id}
               onSelect={() => {
                 setSelectedElement({ entityId: node.entityId, path: node.modelPath });
               }}
@@ -52,10 +53,10 @@ export const RestDslEditorPage: FunctionComponent = () => {
               {node.children?.map((child) => (
                 <TreeNode
                   key={child.id}
-                  label={child.label}
-                  renderIcon={() => <Tag>{child.label}</Tag>}
+                  label={child.id}
+                  renderIcon={() => <MethodBadge type={child.type} />}
                   onSelect={() => {
-                    setSelectedElement({ entityId: child.entityId, path: child.modelPath });
+                    setSelectedElement({ entityId: node.entityId, path: child.modelPath });
                   }}
                 />
               ))}
