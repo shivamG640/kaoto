@@ -129,7 +129,15 @@ export const useDuplicateStep = (vizNode: IVisualizationNode) => {
 
     /** Update entity */
     entitiesContext.updateEntitiesFromCamelResource();
-  }, [controller, entitiesContext, nodeInteractionAddonContext, parentVizNode, vizNode, vizNodeContent]);
+  }, [
+    controller,
+    entitiesContext,
+    nodeInteractionAddonContext,
+    parentVizNode,
+    visibleFlowsContext.visualFlowsApi,
+    vizNode,
+    vizNodeContent,
+  ]);
 
   const value = useMemo(
     () => ({

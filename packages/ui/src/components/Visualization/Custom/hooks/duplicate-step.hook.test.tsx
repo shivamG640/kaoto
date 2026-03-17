@@ -7,6 +7,7 @@ import { CamelRouteResource } from '../../../../models/camel/camel-route-resourc
 import { AddStepMode } from '../../../../models/visualization/base-visual-entity';
 import { CamelRouteVisualEntity } from '../../../../models/visualization/flows/camel-route-visual-entity';
 import { createVisualizationNode } from '../../../../models/visualization/visualization-node';
+import { VisibleFlowsContext, VisibleFlowsContextResult } from '../../../../providers';
 import { EntitiesContext } from '../../../../providers/entities.provider';
 import { camelRouteJson } from '../../../../stubs/camel-route';
 import { updateIds } from '../../../../utils/update-ids';
@@ -87,12 +88,22 @@ describe('useDuplicateStep', () => {
     getRegisteredInteractionAddons: jest.fn().mockReturnValue([]),
   };
 
+  const mockVisibleFlowsContext: VisibleFlowsContextResult = {
+    visibleFlows: { route: true },
+    allFlowsVisible: true,
+    visualFlowsApi: {
+      toggleFlowVisible: jest.fn(),
+    } as never,
+  };
+
   const wrapper: FunctionComponent<PropsWithChildren> = ({ children }) => (
     <EntitiesContext.Provider value={mockEntitiesContext}>
       <CatalogModalContext.Provider value={mockCatalogModalContext}>
-        <NodeInteractionAddonContext.Provider value={mockNodeInteractionAddonContext}>
-          {children}
-        </NodeInteractionAddonContext.Provider>
+        <VisibleFlowsContext.Provider value={mockVisibleFlowsContext}>
+          <NodeInteractionAddonContext.Provider value={mockNodeInteractionAddonContext}>
+            {children}
+          </NodeInteractionAddonContext.Provider>
+        </VisibleFlowsContext.Provider>
       </CatalogModalContext.Provider>
     </EntitiesContext.Provider>
   );
@@ -200,6 +211,11 @@ describe('useDuplicateStep', () => {
         { [routeVizNodeContent.name]: routeVizNodeContent.definition },
         routeVizNode.getId(),
       );
+      expect(mockVisibleFlowsContext.visualFlowsApi.toggleFlowVisible).toHaveBeenCalledTimes(1);
+      expect(mockController.fromModel).toHaveBeenCalledWith({
+        nodes: [],
+        edges: [],
+      });
       expect(mockEntitiesContext.updateEntitiesFromCamelResource as jest.Mock).toHaveBeenCalledTimes(1);
     });
   });
