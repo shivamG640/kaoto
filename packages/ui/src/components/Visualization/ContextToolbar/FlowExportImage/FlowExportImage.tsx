@@ -1,14 +1,18 @@
 import { Button } from '@patternfly/react-core';
 import { ImageIcon } from '@patternfly/react-icons';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityContext';
+import { VisibleFlowsContext } from '../../../../providers/visible-flows.provider';
 import { useGraphLayout } from '../../Custom/hooks/use-graph-layout.hook';
+import { useVisibleVizNodes } from '../../hooks/use-visible-viz-nodes';
 import { HiddenCanvas } from './HiddenCanvas';
 
 export function FlowExportImage() {
   const [isExporting, setIsExporting] = useState(false);
   const { visualEntities } = useEntityContext();
+  const { visibleFlows } = useContext(VisibleFlowsContext)!;
+  const vizNodes = useVisibleVizNodes(visualEntities, visibleFlows);
 
   const onClick = () => {
     setIsExporting(true);
@@ -32,7 +36,7 @@ export function FlowExportImage() {
       />
 
       {isExporting && (
-        <HiddenCanvas autoDownload entities={visualEntities} layout={currentLayout} onComplete={handleExportComplete} />
+        <HiddenCanvas autoDownload vizNodes={vizNodes} layout={currentLayout} onComplete={handleExportComplete} />
       )}
     </>
   );

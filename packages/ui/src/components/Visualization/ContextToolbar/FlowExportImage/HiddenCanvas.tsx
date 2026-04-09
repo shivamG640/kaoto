@@ -11,14 +11,14 @@ import {
 import { toBlob } from 'html-to-image';
 import { FunctionComponent, useContext, useEffect, useRef, useState } from 'react';
 
-import { BaseVisualEntity } from '../../../../models/visualization/base-visual-entity';
+import { IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
 import { VisibleFlowsContext } from '../../../../providers/visible-flows.provider';
 import { CanvasEdge, CanvasNode, LayoutType } from '../../Canvas/canvas.models';
 import { ControllerService } from '../../Canvas/controller.service';
 import { FlowService } from '../../Canvas/flow.service';
 
 interface HiddenCanvasProps {
-  entities: BaseVisualEntity[];
+  vizNodes: IVisualizationNode[];
   layout?: LayoutType;
   autoDownload?: boolean;
   onComplete: () => void;
@@ -26,7 +26,7 @@ interface HiddenCanvasProps {
 }
 
 export const HiddenCanvas: FunctionComponent<HiddenCanvasProps> = ({
-  entities,
+  vizNodes,
   layout = LayoutType.DagreHorizontal,
   onComplete,
   onBlobGenerated,
@@ -55,14 +55,12 @@ export const HiddenCanvas: FunctionComponent<HiddenCanvasProps> = ({
     const nodes: CanvasNode[] = [];
     const edges: CanvasEdge[] = [];
 
-    entities.forEach((entity) => {
-      if (visibleFlows[entity.id]) {
-        const { nodes: childNodes, edges: childEdges } = FlowService.getFlowDiagram(entity.id, entity.toVizNode(), {
-          removePlaceholder: true,
-        });
-        nodes.push(...childNodes);
-        edges.push(...childEdges);
-      }
+    vizNodes.forEach((vizNode) => {
+      const { nodes: childNodes, edges: childEdges } = FlowService.getFlowDiagram(vizNode.id, vizNode, {
+        removePlaceholder: true,
+      });
+      nodes.push(...childNodes);
+      edges.push(...childEdges);
     });
 
     const model: Model = {
@@ -96,7 +94,7 @@ export const HiddenCanvas: FunctionComponent<HiddenCanvasProps> = ({
       clearTimeout(fallbackTimer);
       cancelAnimationFrame(rafId);
     };
-  }, [controller, entities, layout, visibleFlows]);
+  }, [controller, layout, visibleFlows, vizNodes]);
 
   useEffect(() => {
     if (!layoutComplete || !containerRef.current || hasExportedRef.current) return;

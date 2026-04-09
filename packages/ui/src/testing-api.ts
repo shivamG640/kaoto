@@ -3,7 +3,6 @@ export * from './components/DataMapper/debug';
 export * from './components/Document/FieldIcon';
 export * from './components/Document/Nodes/BaseNode';
 export * from './components/ExpansionPanels';
-export * from './components/IconResolver/IconResolver';
 export * from './components/ResizableSplitPanels';
 export * from './components/Visualization/Canvas/controller.service';
 export * from './components/Visualization/Canvas/Form/CanvasFormBody';

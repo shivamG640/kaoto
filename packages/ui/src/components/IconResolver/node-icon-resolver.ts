@@ -271,7 +271,7 @@ import icon_eip_when from '../../assets/eip/when.png';
 import icon_eip_wiretap from '../../assets/eip/wiretap.png';
 import expandIcon from '../../assets/expand.svg';
 import questionIcon from '../../assets/question-mark.svg';
-import { DynamicCatalogRegistry } from '../../dynamic-catalog';
+import { DynamicCatalogRegistry } from '../../dynamic-catalog/dynamic-catalog-registry';
 import { CatalogKind } from '../../models/catalog-kind';
 import { EntityType } from '../../models/entities';
 import { PlaceholderType } from '../../models/placeholder.constants';
@@ -283,7 +283,8 @@ export class NodeIconResolver {
     }
 
     if (elementName.startsWith('kamelet:')) {
-      return (await this.getKameletIcon(elementName)) ?? this.getUnknownIcon();
+      const kameletIcon = await this.getKameletIcon(elementName);
+      return kameletIcon ?? this.getUnknownIcon();
     }
 
     switch (type) {
