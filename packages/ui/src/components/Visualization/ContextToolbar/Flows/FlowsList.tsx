@@ -1,5 +1,6 @@
 import './FlowsList.scss';
 
+import { camelCaseToSpaces } from '@kaoto/forms';
 import { Button, Icon, SearchInput } from '@patternfly/react-core';
 import { EyeIcon, EyeSlashIcon, TrashIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
@@ -207,12 +208,13 @@ export const FlowsList: FunctionComponent<IFlowsList> = ({ onClose }) => {
                     onClick={async (_event) => {
                       //close the dropdown if it is open to not to interfere with the delete modal
                       onClose?.();
+                      await flow.toVizNode();
                       const isDeleteConfirmed = await deleteModalContext?.actionConfirmation({
                         title:
                           "Do you want to delete the '" +
-                          flow.toVizNode().getId() +
+                          flow.id +
                           "' " +
-                          flow.toVizNode().getNodeTitle() +
+                          camelCaseToSpaces(flow.getRootPath(), { capitalize: true }) +
                           '?',
                         text: 'All steps will be lost.',
                       });

@@ -34,7 +34,6 @@ import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityCo
 import { AddStepMode, IVisualizationNode, NodeToolbarTrigger } from '../../../../models';
 import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
 import { SettingsContext } from '../../../../providers';
-import { IconResolver } from '../../../IconResolver';
 import { Anchors } from '../../../registers/anchors';
 import { NodeInteractionAddonContext } from '../../../registers/interactions/node-interaction-addon.provider';
 import { RenderingAnchor } from '../../../RenderingAnchor/RenderingAnchor';
@@ -224,11 +223,7 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
                 {doesHaveWarnings ? (
                   <div className="custom-group__container__icon-placeholder" />
                 ) : (
-                  <IconResolver
-                    alt={tooltipContent}
-                    catalogKind={groupVizNode.data.catalogKind}
-                    name={groupVizNode.data.name}
-                  />
+                  <img src={groupVizNode.data.iconUrl} alt={tooltipContent ?? (groupVizNode.data.iconAlt as string)} />
                 )}
                 <span title={label}>{label}</span>
 

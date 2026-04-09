@@ -25,6 +25,7 @@ import { DocumentationEntity } from '../../../../models/documentation';
 import { VisibleFlowsContext } from '../../../../providers';
 import { DocumentationService } from '../../../../services/documentation.service';
 import { useGraphLayout } from '../../Custom/hooks/use-graph-layout.hook';
+import { useVisibleVizNodes } from '../../hooks/use-visible-viz-nodes';
 import { HiddenCanvas } from '../FlowExportImage/HiddenCanvas';
 import { EntitiesMenu } from './EntitiesMenu';
 import { markdownComponentMapping } from './MarkdownComponentMapping';
@@ -49,6 +50,7 @@ export const ExportDocumentPreviewModal: FunctionComponent<IExportDocumentPrevie
   const [isGeneratingImage, setIsGeneratingImage] = useState<boolean>(false);
 
   const currentLayout = useGraphLayout();
+  const vizNodes = useVisibleVizNodes(visualEntities, visibleFlows);
 
   const onUpdateDocumentationEntities = (documentationEntities: DocumentationEntity[]) => {
     documentationEntities.forEach((docEntity) => {
@@ -179,7 +181,7 @@ export const ExportDocumentPreviewModal: FunctionComponent<IExportDocumentPrevie
 
       {isGeneratingImage && (
         <HiddenCanvas
-          entities={visualEntities}
+          vizNodes={vizNodes}
           layout={currentLayout}
           onComplete={handleImageGenerationComplete}
           onBlobGenerated={handleBlobGenerated}

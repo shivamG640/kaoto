@@ -32,9 +32,8 @@ import { useLocalStorage } from '../../../hooks';
 import { usePrevious } from '../../../hooks/previous.hook';
 import { LocalStorageKeys } from '../../../models';
 import { CanvasLayoutDirection } from '../../../models/settings/settings.model';
-import { BaseVisualEntity } from '../../../models/visualization/base-visual-entity';
+import { IVisualizationNode } from '../../../models/visualization/base-visual-entity';
 import { SettingsContext } from '../../../providers/settings.provider';
-import { VisibleFlowsContext } from '../../../providers/visible-flows.provider';
 import { getInitialLayout } from '../../../utils/get-initial-layout';
 import { HorizontalLayoutIcon } from '../../Icons/HorizontalLayout';
 import { VerticalLayoutIcon } from '../../Icons/VerticalLayout';
@@ -47,11 +46,16 @@ import { CanvasSideBar } from './CanvasSideBar';
 import { FlowService } from './flow.service';
 
 interface CanvasProps {
-  entities: BaseVisualEntity[];
+  vizNodes: IVisualizationNode[];
+  entitiesCount: number;
   contextToolbar?: ReactNode;
 }
 
-export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ entities, contextToolbar }) => {
+export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({
+  vizNodes,
+  entitiesCount,
+  contextToolbar,
+}) => {
   const settingsAdapter = useContext(SettingsContext);
   const settingsLayout = useMemo(
     () => getInitialLayout(settingsAdapter.getSettings().canvasLayoutDirection),
@@ -72,12 +76,11 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
   const catalogModalContext = useContext(CatalogModalContext);
 
   const controller = useVisualizationController();
-  const { visibleFlows } = useContext(VisibleFlowsContext)!;
   const shouldShowEmptyState = useMemo(() => {
-    const areNoFlows = entities.length === 0;
-    const areAllFlowsHidden = Object.values(visibleFlows).every((visible) => !visible);
+    const areNoFlows = entitiesCount === 0;
+    const areAllFlowsHidden = vizNodes.length === 0 && entitiesCount > 0;
     return areNoFlows || areAllFlowsHidden;
-  }, [entities.length, visibleFlows]);
+  }, [entitiesCount, vizNodes.length]);
 
   const wasEmptyStateVisible = usePrevious(shouldShowEmptyState);
   const clearSelection = useCallback(() => {
@@ -93,12 +96,13 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
     const nodes: CanvasNode[] = [];
     const edges: CanvasEdge[] = [];
 
-    entities.forEach((entity) => {
-      if (visibleFlows[entity.id]) {
-        const { nodes: childNodes, edges: childEdges } = FlowService.getFlowDiagram(entity.id, entity.toVizNode());
-        nodes.push(...childNodes);
-        edges.push(...childEdges);
-      }
+    vizNodes.forEach((vizNode) => {
+      const { nodes: childNodes, edges: childEdges } = FlowService.getFlowDiagram(
+        vizNode.getId() ?? vizNode.id,
+        vizNode,
+      );
+      nodes.push(...childNodes);
+      edges.push(...childEdges);
     });
 
     const model: Model = {
@@ -127,7 +131,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
       controller.getGraph().layout();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [controller, entities, visibleFlows]);
+  }, [controller, vizNodes]);
 
   useEventListener<SelectionEventListener>(SELECTION_EVENT, setSelectedIds);
 
@@ -248,7 +252,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({ enti
         <VisualizationEmptyState
           className="canvas-empty-state"
           data-testid="visualization-empty-state"
-          entitiesNumber={entities.length}
+          entitiesNumber={entitiesCount}
         />
       )}
     </TopologyView>
