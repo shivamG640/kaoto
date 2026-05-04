@@ -1,7 +1,7 @@
 import './Visualization.scss';
 
 import { CanvasFormTabsProvider } from '@kaoto/forms';
-import { FunctionComponent, PropsWithChildren, ReactNode, useContext } from 'react';
+import { FunctionComponent, PropsWithChildren, ReactNode, useContext, useMemo } from 'react';
 
 import { useVisibleVizNodes } from '../../hooks/use-visible-viz-nodes';
 import { BaseVisualEntity } from '../../models/visualization/base-visual-entity';
@@ -15,6 +15,7 @@ interface VisualizationProps {
   entities: BaseVisualEntity[];
   fallback?: ReactNode;
   contextToolbar?: ReactNode;
+  isTopologyView?: boolean;
 }
 
 export const Visualization: FunctionComponent<PropsWithChildren<VisualizationProps>> = ({
@@ -22,9 +23,14 @@ export const Visualization: FunctionComponent<PropsWithChildren<VisualizationPro
   entities,
   fallback,
   contextToolbar,
+  isTopologyView,
 }) => {
   const { visibleFlows } = useContext(VisibleFlowsContext)!;
-  const { vizNodes, isResolving } = useVisibleVizNodes(entities, visibleFlows);
+  const allFlowsVisible = useMemo(
+    () => entities.reduce<Record<string, boolean>>((acc, entity) => ({ ...acc, [entity.id]: true }), {}),
+    [entities],
+  );
+  const { vizNodes, isResolving } = useVisibleVizNodes(entities, isTopologyView ? allFlowsVisible : visibleFlows);
 
   return (
     <div className={`canvas-surface ${className ?? ''}`}>
@@ -35,6 +41,7 @@ export const Visualization: FunctionComponent<PropsWithChildren<VisualizationPro
             vizNodes={vizNodes}
             entitiesCount={entities.length}
             isVizNodesResolving={isResolving}
+            isTopologyView={isTopologyView}
           />
         </ErrorBoundary>
       </CanvasFormTabsProvider>
