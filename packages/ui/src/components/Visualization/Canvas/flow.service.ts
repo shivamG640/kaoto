@@ -8,11 +8,45 @@ export class FlowService {
   static nodes: CanvasNode[] = [];
   static edges: CanvasEdge[] = [];
   private static visitedNodes: string[] = [];
+  private static consumersByEndpoint: Map<string, string[]> = new Map();
+  private static outgoingByEntity: Map<string, string[]> = new Map();
+  private static PRODUCER_KEYS = ['to', 'toD', 'wireTap', 'enrich', 'pollEnrich'] as const;
+  private static IN_VM_ENDPOINT_PREFIXES = ['direct:', 'seda:', 'vm:', 'direct-vm:'];
+
+  private static normalizeEndpoint = (uri: string | undefined): string | undefined => {
+    if (!uri) {
+      return undefined;
+    }
+    const stripped = uri.split('?')[0];
+    return this.IN_VM_ENDPOINT_PREFIXES.some((p) => stripped.startsWith(p)) ? stripped : undefined;
+  };
+
+  private static getUri = (value: unknown): string | undefined => {
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (value && typeof value === 'object') {
+      const obj = value as { uri?: unknown; parameters?: { name?: unknown } };
+      const rawUri = obj.uri;
+      if (typeof rawUri === 'string') {
+        // Camel allows `uri: direct` + `parameters.name: foo` as an equivalent of `uri: direct:foo`.
+        // Compose the canonical form here so endpoint matching works for both spellings.
+        if (!rawUri.includes(':')) {
+          const name = obj.parameters?.name;
+          if (typeof name === 'string') {
+            return `${rawUri}:${name}`;
+          }
+        }
+        return rawUri;
+      }
+    }
+    return undefined;
+  };
 
   static getFlowDiagram(
     scope: string,
     vizNode: IVisualizationNode,
-    options: { removePlaceholder?: boolean } = {},
+    options: { removePlaceholder?: boolean; isTopologyView?: boolean } = {},
   ): CanvasNodesAndEdges {
     this.nodes = [];
     this.edges = [];
@@ -37,7 +71,7 @@ export class FlowService {
   /** Method for iterating over all the IVisualizationNode and its children using a depth-first algorithm */
   private static appendNodesAndEdges(
     vizNodeParam: IVisualizationNode,
-    options: { removePlaceholder?: boolean } = {},
+    options: { removePlaceholder?: boolean; isTopologyView?: boolean } = {},
   ): void {
     const removePlaceholder = options.removePlaceholder ?? false;
     if (this.visitedNodes.includes(vizNodeParam.id) || (removePlaceholder && vizNodeParam.data.isPlaceholder)) {
@@ -75,6 +109,81 @@ export class FlowService {
 
     /** Add edges */
     this.edges.push(...this.getEdgesFromVizNode(vizNodeParam, options));
+  }
+
+  private static appendTopologyNodesAndEdges(
+    vizNodeParam: IVisualizationNode,
+    options: { isTopologyView?: boolean } = {},
+  ): void {
+    let node: CanvasNode;
+
+    let children = vizNodeParam.getChildren() ?? [];
+    children = children.filter((child) => !child.data.isPlaceholder);
+    const hasRealChildren = children.length > 0;
+
+    if (vizNodeParam.data.isGroup && vizNodeParam.getParentNode() === undefined) {
+      node = this.getTopologyNode(vizNodeParam);
+      /** Add node */
+      this.nodes.push(node);
+      this.visitedNodes.push(node.id);
+    }
+
+    if (vizNodeParam.data.isGroup && hasRealChildren) {
+      children.forEach((child) => {
+        this.appendTopologyNodesAndEdges(child, options);
+      });
+    } else {
+      const processorName = vizNodeParam.data.processorName;
+      const def = vizNodeParam.getNodeDefinition();
+      if (processorName === 'from') {
+        const endpoint = this.normalizeEndpoint(this.getUri(def));
+        if (endpoint) this.consumersByEndpoint.set(endpoint, [vizNodeParam.getId() ?? vizNodeParam.id]);
+      }
+      if (this.PRODUCER_KEYS.includes(processorName as (typeof this.PRODUCER_KEYS)[number])) {
+        const rawUri = this.getUri(def);
+        const endpoint = this.normalizeEndpoint(rawUri);
+        if (endpoint) {
+          const producerId = vizNodeParam.getId() ?? vizNodeParam.id;
+          const existingEndpoints = this.outgoingByEntity.get(producerId) ?? [];
+          this.outgoingByEntity.set(producerId, [...existingEndpoints, endpoint]);
+        }
+      }
+    }
+  }
+
+  static getTopologyFlowDiagram(vizNodes: IVisualizationNode[]): CanvasNodesAndEdges {
+    this.nodes = [];
+    this.edges = [];
+    this.visitedNodes = [];
+
+    vizNodes.forEach((vizNode) => {
+      this.appendTopologyNodesAndEdges(vizNode, { isTopologyView: true });
+    });
+
+    this.outgoingByEntity.forEach((endpoints, producerId) => {
+      const producerTop = this.nodes.map((node) => node.id.split('|')[0]).includes(producerId);
+      if (!producerTop) {
+        return;
+      }
+      endpoints.forEach((endpoint) => {
+        const consumerIds = this.consumersByEndpoint.get(endpoint);
+
+        // The endpoint is consumed somewhere in this file (possibly only by the producer itself).
+        // Don't treat it as external; emit edges to any non-self consumer.
+        if (consumerIds && consumerIds.length > 0) {
+          consumerIds.forEach((consumerId) => {
+            if (consumerId === producerId) {
+              return;
+            }
+            if (this.nodes.map((node) => node.id.split('|')[0]).includes(consumerId)) {
+              this.edges.push(this.getEdge(producerId, consumerId, true));
+            }
+          });
+        }
+      });
+    });
+
+    return { nodes: this.nodes, edges: this.edges };
   }
 
   private static getCanvasNode(vizNodeParam: IVisualizationNode): CanvasNode {
@@ -158,10 +267,22 @@ export class FlowService {
     };
   }
 
-  private static getEdge(source: string, target: string): CanvasEdge {
+  private static getTopologyNode(vizNodeParam: IVisualizationNode): CanvasNode {
+    return {
+      id: vizNodeParam.getId() ?? vizNodeParam.id,
+      type: 'topology-node',
+      label: vizNodeParam.getId(),
+      data: { vizNode: vizNodeParam },
+      width: CanvasDefaults.DEFAULT_NODE_WIDTH,
+      height: CanvasDefaults.DEFAULT_NODE_HEIGHT,
+      shape: CanvasDefaults.DEFAULT_NODE_SHAPE,
+    };
+  }
+
+  private static getEdge(source: string, target: string, isTopologyEdge?: boolean): CanvasEdge {
     return {
       id: `${source} >>> ${target}`,
-      type: 'edge',
+      type: isTopologyEdge ? 'topology-edge' : 'edge',
       source,
       target,
       edgeStyle: EdgeStyle.solid,

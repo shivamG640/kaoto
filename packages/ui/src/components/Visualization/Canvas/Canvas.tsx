@@ -50,6 +50,7 @@ interface CanvasProps {
   entitiesCount: number;
   isVizNodesResolving?: boolean;
   contextToolbar?: ReactNode;
+  isTopologyView?: boolean;
 }
 
 export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({
@@ -57,6 +58,7 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({
   entitiesCount,
   isVizNodesResolving = false,
   contextToolbar,
+  isTopologyView = false,
 }) => {
   const settingsAdapter = useContext(SettingsContext);
   const settingsLayout = useMemo(
@@ -103,14 +105,21 @@ export const Canvas: FunctionComponent<PropsWithChildren<CanvasProps>> = ({
     const nodes: CanvasNode[] = [];
     const edges: CanvasEdge[] = [];
 
-    vizNodes.forEach((vizNode) => {
-      const { nodes: childNodes, edges: childEdges } = FlowService.getFlowDiagram(
-        vizNode.getId() ?? vizNode.id,
-        vizNode,
-      );
+    if (isTopologyView) {
+      const { nodes: childNodes, edges: childEdges } = FlowService.getTopologyFlowDiagram(vizNodes);
       nodes.push(...childNodes);
       edges.push(...childEdges);
-    });
+    } else {
+      vizNodes.forEach((vizNode) => {
+        const { nodes: childNodes, edges: childEdges } = FlowService.getFlowDiagram(
+          vizNode.getId() ?? vizNode.id,
+          vizNode,
+          { removePlaceholder: isTopologyView ? true : false, isTopologyView },
+        );
+        nodes.push(...childNodes);
+        edges.push(...childEdges);
+      });
+    }
 
     const model: Model = {
       nodes,
