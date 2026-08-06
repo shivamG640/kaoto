@@ -9,7 +9,7 @@ import { CatalogKind } from '../../catalog-kind';
 import { EntityType } from '../../entities';
 import { KaotoSchemaDefinition } from '../../kaoto-schema';
 import { NodeLabelType } from '../../settings';
-import { AddStepMode, IVisualizationNode, IVisualizationNodeData } from '../base-visual-entity';
+import { AddStepMode, IVisualizationNode, IVisualizationNodeData, IVisualizationNodeIds } from '../base-visual-entity';
 import { IClipboardContent } from '../clipboard';
 import { AbstractCamelVisualEntity } from './abstract-camel-visual-entity';
 import { CamelCatalogService } from './camel-catalog.service';
@@ -91,8 +91,8 @@ export class KameletVisualEntity extends AbstractCamelVisualEntity<{ id: string;
     return super.getNodeDefinition(path);
   }
 
-  getCopiedContent(path?: string): IClipboardContent | undefined {
-    if (!path) return;
+  getCopiedContent(path?: string, ids?: IVisualizationNodeIds): IClipboardContent | undefined {
+    if (!path || !ids) return;
 
     // Allow copying the entire kamelet entity
     if (path === this.getRootPath()) {
@@ -100,7 +100,7 @@ export class KameletVisualEntity extends AbstractCamelVisualEntity<{ id: string;
     }
 
     // For other paths, use the parent implementation
-    return super.getCopiedContent(path);
+    return super.getCopiedContent(path, ids);
   }
 
   updateModel(path: string | undefined, value: Record<string, unknown>): void {
