@@ -1,6 +1,7 @@
 import { isDefined, KaotoForm } from '@kaoto/forms';
 import { FunctionComponent, useCallback, useContext, useMemo, useRef } from 'react';
 
+import { useNodeDefinition } from '../../../../hooks';
 import { IVisualizationNode } from '../../../../models';
 import { EntitiesContext } from '../../../../providers/entities.provider';
 import { setValue } from '../../../../utils';
@@ -21,7 +22,7 @@ export const CanvasFormBody: FunctionComponent<CanvasFormTabsProps> = ({ vizNode
     return !isDefined(schema) || Object.keys(schema).length === 0;
   }, [schema]);
 
-  const model = vizNode.getNodeDefinition();
+  const model = useNodeDefinition(vizNode);
 
   const handleOnChangeIndividualProp = useCallback(
     (path: string, value: unknown) => {
@@ -30,10 +31,12 @@ export const CanvasFormBody: FunctionComponent<CanvasFormTabsProps> = ({ vizNode
         updatedValue = undefined;
       }
 
-      const newModel = vizNode.getNodeDefinition() ?? {};
-      setValue(newModel, path, updatedValue);
-      vizNode.updateModel(newModel);
-      entitiesContext?.updateSourceCodeFromEntities();
+      void vizNode.fetchNodeDefinition().then((newModel) => {
+        const safeModel = (newModel as Record<string, unknown>) ?? {};
+        setValue(safeModel, path, updatedValue);
+        vizNode.updateModel(safeModel);
+        entitiesContext?.updateSourceCodeFromEntities();
+      });
     },
     [entitiesContext, vizNode],
   );

@@ -22,7 +22,7 @@ vi.mock('monaco-editor', () => ({
 describe('DataMapperPage', () => {
   const vizNode = {
     getId: () => 'route-1234',
-    getNodeDefinition: () => ({ id: 'kaoto-datamapper-1234' }),
+    data: { path: 'test-path', entity: { getNodeDefinition: () => ({ id: 'kaoto-datamapper-1234' }) } },
   } as unknown as IVisualizationNode;
   const defaultMetadata: IDataMapperMetadata = {
     sourceBody: {

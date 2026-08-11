@@ -130,6 +130,10 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualEntity {
     return { ...this.errorHandlerDef.errorHandler };
   }
 
+  async fetchNodeDefinition(_path: string | undefined, _ids: IVisualizationNodeIds): Promise<unknown> {
+    return { ...this.errorHandlerDef.errorHandler };
+  }
+
   getOmitFormFields(): string[] {
     return [];
   }
@@ -157,7 +161,7 @@ export class CamelErrorHandlerVisualEntity implements BaseVisualEntity {
     };
   }
 
-  getNodeValidationText(): string | undefined {
+  async getNodeValidationText(): Promise<string | undefined> {
     return undefined;
   }
 

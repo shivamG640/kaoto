@@ -164,7 +164,7 @@ const PlaceholderNodeInner: FunctionComponent<PlaceholderNodeInnerProps> = obser
             const filter = entitiesContext.camelResource.getCompatibleComponents(
               mode,
               filterNode.data,
-              filterNode.getNodeDefinition(),
+              filterNode.data.entity?.getNodeDefinition(filterNode.data.path),
             );
             return catalogModalContext?.checkCompatibility(compatibilityCheckNodeName, filter) ?? false;
           },

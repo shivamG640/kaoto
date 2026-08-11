@@ -390,7 +390,7 @@ describe('CanvasFormBody', () => {
         },
       },
     };
-    vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue({ name: 'test-component' });
+    vi.spyOn(vizNode, 'fetchNodeDefinition').mockResolvedValue({ name: 'test-component' });
 
     const wrapper = render(
       <Provider>

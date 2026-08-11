@@ -14,6 +14,7 @@ import {
   BaseVisualEntity,
   IVisualizationNode,
   IVisualizationNodeData,
+  IVisualizationNodeIds,
   NodeInteraction,
 } from '../base-visual-entity';
 import { AbstractCamelVisualEntity } from './abstract-camel-visual-entity';
@@ -111,6 +112,14 @@ export class CamelRouteConfigurationVisualEntity
     }
 
     return super.getNodeDefinition(path);
+  }
+
+  async fetchNodeDefinition(path: string | undefined, ids: IVisualizationNodeIds): Promise<unknown> {
+    if (path === this.getRootPath()) {
+      return { ...this.routeConfigurationDef.routeConfiguration };
+    }
+
+    return super.fetchNodeDefinition(path, ids);
   }
 
   getOmitFormFields(): string[] {

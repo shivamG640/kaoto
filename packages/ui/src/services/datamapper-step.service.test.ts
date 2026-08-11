@@ -1,7 +1,7 @@
 import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
 
 import { DynamicCatalogRegistry } from '../dynamic-catalog/dynamic-catalog-registry';
-import { CatalogKind, createVisualizationNode, IVisualizationNode } from '../models';
+import { BaseVisualEntity, CatalogKind, createVisualizationNode, IVisualizationNode } from '../models';
 import { EntitiesContextResult } from '../providers';
 import { XSLT_COMPONENT_NAME, XsltComponentDef } from '../utils';
 import { DataMapperStepService } from './datamapper-step.service';
@@ -23,15 +23,17 @@ describe('DataMapperStepService', () => {
 
   describe('getDataMapperMetadataId', () => {
     it('should return the id from visualization node', () => {
+      const mockEntity = { getNodeDefinition: vi.fn().mockReturnValue({ id: 'custom-metadata-id' }) };
       const vizNode = createVisualizationNode('custom-id', {
         name: 'step',
+        path: 'test-path',
+        entity: mockEntity as unknown as BaseVisualEntity,
         isPlaceholder: false,
         isGroup: false,
         title: '',
         description: '',
         iconUrl: '',
       });
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue({ id: 'custom-metadata-id' });
 
       const metadataId = DataMapperStepService.getDataMapperMetadataId(vizNode);
 
@@ -41,11 +43,15 @@ describe('DataMapperStepService', () => {
 
   describe('initializeXsltStep', () => {
     let vizNode: IVisualizationNode;
+    let mockEntity: { getNodeDefinition: ReturnType<typeof vi.fn>; updateModel: ReturnType<typeof vi.fn> };
     const metadataId = 'test-metadata-id';
 
     beforeEach(() => {
+      mockEntity = { getNodeDefinition: vi.fn(), updateModel: vi.fn() };
       vizNode = createVisualizationNode('test', {
         name: 'step',
+        path: 'test-path',
+        entity: mockEntity as unknown as BaseVisualEntity,
         isPlaceholder: false,
         isGroup: false,
         title: '',
@@ -66,7 +72,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       const documentName = DataMapperStepService.initializeXsltStep(vizNode, metadataId, mockEntitiesContext);
@@ -92,7 +98,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       const documentName = DataMapperStepService.initializeXsltStep(vizNode, metadataId, mockEntitiesContext);
@@ -216,10 +222,14 @@ describe('DataMapperStepService', () => {
 
   describe('setUseJsonBody', () => {
     let vizNode: IVisualizationNode;
+    let mockEntity: { getNodeDefinition: ReturnType<typeof vi.fn>; updateModel: ReturnType<typeof vi.fn> };
 
     beforeEach(() => {
+      mockEntity = { getNodeDefinition: vi.fn(), updateModel: vi.fn() };
       vizNode = createVisualizationNode('test', {
         name: 'step',
+        path: 'test-path',
+        entity: mockEntity as unknown as BaseVisualEntity,
         isPlaceholder: false,
         isGroup: false,
         title: '',
@@ -241,7 +251,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.setUseJsonBody(vizNode, true, mockEntitiesContext);
@@ -277,7 +287,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.setUseJsonBody(vizNode, false, mockEntitiesContext);
@@ -303,7 +313,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.setUseJsonBody(vizNode, true, mockEntitiesContext);
@@ -335,7 +345,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.setUseJsonBody(vizNode, true, mockEntitiesContext);
@@ -354,7 +364,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.setUseJsonBody(vizNode, true, mockEntitiesContext);
@@ -366,10 +376,14 @@ describe('DataMapperStepService', () => {
 
   describe('updateXsltFileName', () => {
     let vizNode: IVisualizationNode;
+    let mockEntity: { getNodeDefinition: ReturnType<typeof vi.fn>; updateModel: ReturnType<typeof vi.fn> };
 
     beforeEach(() => {
+      mockEntity = { getNodeDefinition: vi.fn(), updateModel: vi.fn() };
       vizNode = createVisualizationNode('test', {
         name: 'step',
+        path: 'test-path',
+        entity: mockEntity as unknown as BaseVisualEntity,
         isPlaceholder: false,
         isGroup: false,
         title: '',
@@ -390,7 +404,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.updateXsltFileName(vizNode, 'new-file.xsl', mockEntitiesContext);
@@ -415,7 +429,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.updateXsltFileName(vizNode, 'transform.xslt', mockEntitiesContext);
@@ -439,7 +453,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.updateXsltFileName(vizNode, 'new-file.xsl', mockEntitiesContext);
@@ -460,7 +474,7 @@ describe('DataMapperStepService', () => {
         ],
       };
 
-      vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(model);
+      mockEntity.getNodeDefinition.mockReturnValue(model);
       const updateModelSpy = vi.spyOn(vizNode, 'updateModel');
 
       DataMapperStepService.updateXsltFileName(vizNode, 'new-file.xsl', mockEntitiesContext);

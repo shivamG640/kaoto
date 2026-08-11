@@ -31,7 +31,7 @@ describe('useDisableStep', () => {
       title: '',
       description: '',
     });
-    mockVizNode.getNodeDefinition = vi.fn();
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(undefined);
     mockVizNode.updateModel = vi.fn();
   });
 
@@ -44,7 +44,7 @@ describe('useDisableStep', () => {
   );
 
   it('should return onToggleDisableNode function and isDisabled status', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: false });
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: false });
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -55,7 +55,7 @@ describe('useDisableStep', () => {
   });
 
   it('should return isDisabled as false when step is not disabled', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: false });
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: false });
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -63,7 +63,7 @@ describe('useDisableStep', () => {
   });
 
   it('should return isDisabled as true when step is disabled', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: true });
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: true });
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -71,7 +71,7 @@ describe('useDisableStep', () => {
   });
 
   it('should return isDisabled as false when disabled property is undefined', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({});
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({});
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -79,7 +79,7 @@ describe('useDisableStep', () => {
   });
 
   it('should return isDisabled as false when definition is undefined', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(undefined);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -88,7 +88,7 @@ describe('useDisableStep', () => {
 
   it('should enable step when currently disabled', () => {
     const mockDefinition = { disabled: true, id: 'test-step' };
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(mockDefinition);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(mockDefinition);
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -101,7 +101,7 @@ describe('useDisableStep', () => {
 
   it('should disable step when currently enabled', () => {
     const mockDefinition = { disabled: false, id: 'test-step' };
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(mockDefinition);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(mockDefinition);
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -114,7 +114,7 @@ describe('useDisableStep', () => {
 
   it('should work with empty definition object', () => {
     const mockDefinition = {};
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(mockDefinition);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(mockDefinition);
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -126,7 +126,7 @@ describe('useDisableStep', () => {
   });
 
   it('should create new definition object when undefined', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(undefined);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -138,7 +138,7 @@ describe('useDisableStep', () => {
   });
 
   it('should maintain stable reference when dependencies do not change', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: false });
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: false });
 
     const { result, rerender } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
@@ -149,12 +149,12 @@ describe('useDisableStep', () => {
   });
 
   it('should update references when disabled status changes', () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: false });
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: false });
 
     const { result, rerender } = renderHook(() => useDisableStep(mockVizNode), { wrapper });
 
     const firstResult = result.current;
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: true });
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: true });
 
     rerender();
 

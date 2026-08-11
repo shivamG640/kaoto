@@ -134,24 +134,24 @@ describe('AbstractCamelVisualEntity', () => {
   });
 
   describe('getNodeValidationText', () => {
-    it('should return an `undefined` if the path is `undefined`', () => {
-      const result = abstractVisualEntity.getNodeValidationText(undefined);
+    it('should return an `undefined` if the path is `undefined`', async () => {
+      const result = await abstractVisualEntity.getNodeValidationText(undefined);
 
       expect(result).toBeUndefined();
     });
 
-    it('should return an `undefined` if the path is empty', () => {
-      const result = abstractVisualEntity.getNodeValidationText('');
+    it('should return an `undefined` if the path is empty', async () => {
+      const result = await abstractVisualEntity.getNodeValidationText('');
 
       expect(result).toBeUndefined();
     });
 
-    it('should return a validation text relying on the `validateNodeStatus` method', () => {
+    it('should return a validation text relying on the `validateNodeStatus` method', async () => {
       const missingParametersModel = cloneDeep(camelRouteJson.route);
       missingParametersModel.from.uri = '';
       abstractVisualEntity = new CamelRouteVisualEntity(missingParametersModel);
 
-      const result = abstractVisualEntity.getNodeValidationText('route.from');
+      const result = await abstractVisualEntity.getNodeValidationText('route.from');
 
       expect(result).toBe('1 required parameter is not yet configured: [ uri ]');
     });
@@ -637,6 +637,43 @@ describe('AbstractCamelVisualEntity', () => {
 
       // The result must not be the same object reference as the catalog entry
       expect(result?.properties?.parameters).not.toBe(kameletEntry!.spec.definition);
+    });
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should return undefined if path is not provided', async () => {
+      const result = await abstractVisualEntity.fetchNodeDefinition(undefined, {});
+      expect(result).toBeUndefined();
+    });
+
+    it('should return updated node definition when path is valid', async () => {
+      const path = 'route.from.steps.2.to';
+      const ids = {
+        primaryNodeId: { name: 'to', catalogKind: CatalogKind.Pattern },
+        secondaryNodeId: { name: 'direct', catalogKind: CatalogKind.Component },
+      };
+      const expected = {
+        uri: 'direct',
+        parameters: { name: 'my-route', bridgeErrorHandler: true },
+      };
+
+      const result = await abstractVisualEntity.fetchNodeDefinition(path, ids);
+      expect(result).toEqual(expected);
+    });
+
+    it('should return the same result as getNodeDefinition for a given path', async () => {
+      const path = 'route.from.steps.2.to';
+      const ids = {
+        primaryNodeId: { name: 'to', catalogKind: CatalogKind.Pattern },
+        secondaryNodeId: { name: 'direct', catalogKind: CatalogKind.Component },
+      };
+
+      const asyncResult = await abstractVisualEntity.fetchNodeDefinition(path, ids);
+
+      expect(asyncResult).toEqual({
+        uri: 'direct',
+        parameters: { name: 'my-route', bridgeErrorHandler: true },
+      });
     });
   });
 });

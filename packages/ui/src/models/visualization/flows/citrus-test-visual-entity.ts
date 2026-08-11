@@ -195,19 +195,31 @@ export class CitrusTestVisualEntity implements BaseVisualEntity {
     return CitrusTestSchemaService.getNodeSchema(primaryNodeId.name);
   }
 
+  /** @deprecated Use {@link fetchNodeDefinition} instead. */
   getNodeDefinition(path?: string): unknown {
     if (!path) return undefined;
     if (path === this.getRootPath()) {
       return this.test;
     }
-
     const actionName = CitrusTestSchemaService.extractTestActionName(path);
     const actionModel: TestAction = getValue(this.test, this.toModelPath(path));
-
     if (actionModel) {
       this.updateTestActionModel(path, actionName, actionModel);
     }
+    return actionModel ?? {};
+  }
 
+  async fetchNodeDefinition(path: string | undefined, ids: IVisualizationNodeIds): Promise<unknown> {
+    if (!path) return undefined;
+    if (path === this.getRootPath()) {
+      return this.test;
+    }
+    if (!ids?.primaryNodeId?.name) return undefined;
+    const actionName = ids.primaryNodeId.name;
+    const actionModel: TestAction = getValue(this.test, this.toModelPath(path));
+    if (actionModel) {
+      this.updateTestActionModel(path, actionName, actionModel);
+    }
     return actionModel ?? {};
   }
 
@@ -355,8 +367,9 @@ export class CitrusTestVisualEntity implements BaseVisualEntity {
     };
   }
 
-  getNodeValidationText(path?: string | undefined): string | undefined {
+  async getNodeValidationText(path?: string | undefined): Promise<string | undefined> {
     const schema = this.getNodeSchema(path);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const definition = this.getNodeDefinition(path);
     if (!schema || !definition) return undefined;
 

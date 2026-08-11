@@ -30,15 +30,25 @@ export interface BaseVisualEntity extends BaseEntity {
   getNodeSchema(path?: string): KaotoSchemaDefinition['schema'] | undefined;
 
   /**
+   * @deprecated Use {@link fetchNodeDefinition} instead.
+   * Returns the node's model definition synchronously by path.
+   * Kept on the interface while sync callers (canDrop callbacks, activation functions, render-time reads)
+   * are progressively migrated to the async {@link fetchNodeDefinition}.
+   */
+  getNodeDefinition(path?: string): unknown;
+
+  /**
    * Async, ID-based schema resolution using the Dynamic Catalog.
    * Accepts the three node identifiers and returns the fully resolved schema.
    * DSL-specific logic is owned by each concrete BaseVisualEntity implementation.
    */
   fetchNodeSchema(ids: IVisualizationNodeIds): Promise<KaotoSchemaDefinition['schema'] | undefined>;
 
-  /** Given a path, returns the node's underlying definition in JSON format */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getNodeDefinition(path?: string): any;
+  /**
+   * Async, ID-based node-definition resolution.
+   * Accepts the path and the three node identifiers and returns the fully resolved definition.
+   */
+  fetchNodeDefinition(path: string | undefined, ids: IVisualizationNodeIds): Promise<unknown>;
 
   /** Return fields that should be omitted when configuring this entity */
   getOmitFormFields: () => string[];
@@ -80,7 +90,7 @@ export interface BaseVisualEntity extends BaseEntity {
   getNodeInteraction(data: IVisualizationNodeData): NodeInteraction;
 
   /** Given a path, retrieve the Node validation status */
-  getNodeValidationText(path?: string): string | undefined;
+  getNodeValidationText(path?: string): Promise<string | undefined>;
 
   /** Generates a IVisualizationNode from the underlying Camel entity */
   toVizNode: () => Promise<IVisualizationNode>;
@@ -137,9 +147,8 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
   /** This method returns the node's associated schema asynchronously from the catalog */
   fetchSchema(): Promise<KaotoSchemaDefinition['schema'] | undefined>;
 
-  /** This method returns the node's underlying definition in JSON format */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getNodeDefinition(): any;
+  /** Async wrapper — fetches the node definition using the node identity fields. */
+  fetchNodeDefinition(): Promise<unknown>;
 
   /** Return fields that should be omitted when configuring this entity */
   getOmitFormFields(): string[];
@@ -165,7 +174,7 @@ export interface IVisualizationNode<T extends IVisualizationNodeData = IVisualiz
   removeChild(): void;
 
   /** Retrieve the node's validation status, relying into the underlying entity */
-  getNodeValidationText(): string | undefined;
+  getNodeValidationText(): Promise<string | undefined>;
 }
 
 /**

@@ -70,7 +70,7 @@ describe('useMoveStep', () => {
   };
 
   beforeEach(() => {
-    vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue({ id: 'testSchema' });
+    vi.spyOn(vizNode, 'fetchNodeDefinition').mockResolvedValue({ id: 'testSchema' });
     vi.clearAllMocks();
   });
 

@@ -39,7 +39,8 @@ const appendMapValue = (map: Map<string, string[]>, key: string, value: string):
 
 const recordTopologyStep = async (vizNode: IVisualizationNode, registry: TopologyEndpointRegistry): Promise<void> => {
   const processorName = vizNode.data.processorName;
-  const nodeDefinition = vizNode.getNodeDefinition();
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  const nodeDefinition = (vizNode as unknown as { getNodeDefinition?: () => unknown }).getNodeDefinition?.();
   const uriString = CamelUriHelper.getUriString(nodeDefinition);
 
   if (!uriString) {
@@ -55,7 +56,7 @@ const recordTopologyStep = async (vizNode: IVisualizationNode, registry: Topolog
   // Build full URI using getUriStringFromParameters
   let fullUri: string;
   if (componentDef?.component.syntax) {
-    const parameters = getValue(nodeDefinition, 'parameters') as ParsedParameters | undefined;
+    const parameters = getValue(nodeDefinition as object, 'parameters') as ParsedParameters | undefined;
     fullUri = CamelUriHelper.getUriStringFromParameters(uriString, componentDef.component.syntax, parameters, {
       requiredParameters: componentDef.propertiesSchema.required as string[],
     });

@@ -128,7 +128,7 @@ describe('CamelRestConfigurationVisualEntity', () => {
   });
 
   describe('getNodeValidationText', () => {
-    it('should return undefined for valid definitions', () => {
+    it('should return undefined for valid definitions', async () => {
       const entity = new CamelRestConfigurationVisualEntity({
         restConfiguration: {
           ...restConfigurationDef.restConfiguration,
@@ -143,19 +143,19 @@ describe('CamelRestConfigurationVisualEntity', () => {
         },
       });
 
-      expect(entity.getNodeValidationText()).toBeUndefined();
+      expect(await entity.getNodeValidationText()).toBeUndefined();
     });
 
-    it('should not modify the original definition when validating', () => {
+    it('should not modify the original definition when validating', async () => {
       const originalRestConfigurationDef: RestConfiguration = { ...restConfigurationDef.restConfiguration };
       const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
 
-      entity.getNodeValidationText();
+      await entity.getNodeValidationText();
 
       expect(restConfigurationDef.restConfiguration).toEqual(originalRestConfigurationDef);
     });
 
-    it('should return errors when there is an invalid property', () => {
+    it('should return errors when there is an invalid property', async () => {
       const invalidRestConfigurationDef: RestConfiguration = {
         ...restConfigurationDef.restConfiguration,
         useXForwardHeaders: 'true' as unknown as RestConfiguration['useXForwardHeaders'],
@@ -169,7 +169,7 @@ describe('CamelRestConfigurationVisualEntity', () => {
       };
       const entity = new CamelRestConfigurationVisualEntity({ restConfiguration: invalidRestConfigurationDef });
 
-      expect(entity.getNodeValidationText()).toBe(`'/useXForwardHeaders' must be boolean,
+      expect(await entity.getNodeValidationText()).toBe(`'/useXForwardHeaders' must be boolean,
 '/apiVendorExtension' must be boolean,
 '/skipBindingOnErrorCode' must be boolean,
 '/clientRequestValidation' must be boolean,
@@ -225,5 +225,20 @@ describe('CamelRestConfigurationVisualEntity', () => {
     const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
 
     expect(entity.toJSON()).toEqual(restConfigurationDef);
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should return the rest configuration definition', async () => {
+      const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
+      const result = await entity.fetchNodeDefinition(undefined, {});
+      expect(result).toEqual(restConfigurationDef.restConfiguration);
+    });
+
+    it('should return the same result as getNodeDefinition', async () => {
+      const entity = new CamelRestConfigurationVisualEntity(restConfigurationDef);
+      const syncResult = entity.getNodeDefinition();
+      const asyncResult = await entity.fetchNodeDefinition(undefined, {});
+      expect(asyncResult).toEqual(syncResult);
+    });
   });
 });

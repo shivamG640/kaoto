@@ -8,7 +8,11 @@ import { COLLAPSE_STATE } from './collapse-handler-state';
 
 const createMockNode = (nodeId: string, setCollapsed: Mock, setDimensions: Mock) => ({
   getKind: () => ModelKind.node,
-  getData: () => ({ vizNode: { getNodeDefinition: () => ({ id: nodeId }) } }),
+  getData: () => ({
+    vizNode: {
+      data: { path: 'test-path', entity: { getNodeDefinition: () => ({ id: nodeId }) } },
+    },
+  }),
   setCollapsed,
   setDimensions,
 });
@@ -103,7 +107,11 @@ describe('applyCollapseState', () => {
     const setDimensions = vi.fn();
     const mockNode = {
       getKind: () => ModelKind.node,
-      getData: () => ({ vizNode: { getNodeDefinition: () => ({ id: undefined }) } }),
+      getData: () => ({
+        vizNode: {
+          data: { path: 'test-path', entity: { getNodeDefinition: () => ({ id: undefined }) } },
+        },
+      }),
       setCollapsed,
       setDimensions,
     };
@@ -125,7 +133,11 @@ describe('applyCollapseState', () => {
     const mockNode = createMockNode('choice-1', setCollapsed, setDimensions);
     const mockEdge = {
       getKind: () => ModelKind.edge,
-      getData: () => ({ vizNode: { getNodeDefinition: () => ({ id: 'edge-1' }) } }),
+      getData: () => ({
+        vizNode: {
+          data: { path: 'test-path', entity: { getNodeDefinition: () => ({ id: 'edge-1' }) } },
+        },
+      }),
     };
 
     const controller = {

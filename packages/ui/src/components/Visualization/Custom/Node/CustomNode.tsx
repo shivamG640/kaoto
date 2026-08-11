@@ -26,10 +26,11 @@ import {
   withContextMenu,
   withSelection,
 } from '@patternfly/react-topology';
-import { FunctionComponent, useContext, useMemo, useRef } from 'react';
+import { FunctionComponent, useContext, useMemo, useRef, useState, useEffect } from 'react';
 
 import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
 import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityContext';
+import { useNodeDefinition } from '../../../../hooks';
 import { AddStepMode, IVisualizationNode, NodeToolbarTrigger } from '../../../../models';
 import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
 import { SettingsContext } from '../../../../providers';
@@ -86,8 +87,12 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
     const processorName = (vizNode?.data as CamelRouteVisualEntityData)?.processorName;
     const ProcessorIcon = getProcessorIcon(processorName);
     const processorDescription = vizNode?.data.processorIconTooltip ?? '';
-    const isDisabled = !!vizNode?.getNodeDefinition()?.disabled;
-    const validationText = vizNode?.getNodeValidationText();
+    const nodeDef = useNodeDefinition(vizNode) as { disabled?: boolean } | undefined;
+    const isDisabled = !!nodeDef?.disabled;
+    const [validationText, setValidationText] = useState<string | undefined>(undefined);
+    useEffect(() => {
+      void vizNode?.getNodeValidationText().then(setValidationText);
+    }, [vizNode, lastUpdate]);
     const doesHaveWarnings = !isDisabled && !!validationText;
     const [isGHover, gHoverRef] = useHover<SVGGElement>(CanvasDefaults.HOVER_DELAY_IN, CanvasDefaults.HOVER_DELAY_OUT);
     const [isToolbarHover, toolbarHoverRef] = useHover<SVGForeignObjectElement>(
@@ -178,7 +183,7 @@ const CustomNodeInner: FunctionComponent<CustomNodeProps> = observer(
               const filter = entitiesContext.camelResource.getCompatibleComponents(
                 mode,
                 filterNode.data,
-                filterNode.getNodeDefinition(),
+                filterNode.data.entity?.getNodeDefinition(filterNode.data.path),
               );
               return catalogModalContext?.checkCompatibility(compatibilityCheckNodeName, filter) ?? false;
             },

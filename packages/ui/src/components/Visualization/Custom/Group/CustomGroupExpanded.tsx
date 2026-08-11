@@ -26,10 +26,11 @@ import {
   useHover,
 } from '@patternfly/react-topology';
 import clsx from 'clsx';
-import { FunctionComponent, useContext, useMemo, useRef } from 'react';
+import { FunctionComponent, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
 import { useEntityContext } from '../../../../hooks/useEntityContext/useEntityContext';
+import { useNodeDefinition } from '../../../../hooks';
 import { AddStepMode, IVisualizationNode, NodeToolbarTrigger } from '../../../../models';
 import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
 import { SettingsContext } from '../../../../providers';
@@ -63,7 +64,6 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
     }
 
     const groupVizNode: IVisualizationNode | undefined = element.getData()?.vizNode;
-    const lastUpdate = groupVizNode?.lastUpdate;
     const settingsAdapter = useContext(SettingsContext);
     const entitiesContext = useEntityContext();
     const catalogModalContext = useContext(CatalogModalContext);
@@ -72,8 +72,13 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
     const processorName = (groupVizNode?.data as CamelRouteVisualEntityData)?.processorName;
     const ProcessorIcon = getProcessorIcon(processorName);
     const processorDescription = groupVizNode?.data?.processorIconTooltip ?? '';
-    const isDisabled = !!groupVizNode?.getNodeDefinition()?.disabled;
-    const validationText = groupVizNode?.getNodeValidationText();
+    const groupNodeDef = useNodeDefinition(groupVizNode) as { disabled?: boolean } | undefined;
+    const isDisabled = !!groupNodeDef?.disabled;
+    const lastUpdate = groupVizNode?.lastUpdate;
+    const [validationText, setValidationText] = useState<string | undefined>(undefined);
+    useEffect(() => {
+      void groupVizNode?.getNodeValidationText().then(setValidationText);
+    }, [groupVizNode, lastUpdate]);
     const doesHaveWarnings = !isDisabled && !!validationText;
     const { childCount, hasGroupChildren } = getVizNodeChildrenInfo(groupVizNode);
     const [isGHover, gHoverRef] = useHover<SVGGElement>(CanvasDefaults.HOVER_DELAY_IN, CanvasDefaults.HOVER_DELAY_OUT);
@@ -142,7 +147,7 @@ export const CustomGroupExpandedInner: FunctionComponent<CustomGroupProps> = obs
               const filter = entitiesContext.camelResource.getCompatibleComponents(
                 mode,
                 filterNode.data,
-                filterNode.getNodeDefinition(),
+                filterNode.data.entity?.getNodeDefinition(filterNode.data.path),
               );
               return catalogModalContext?.checkCompatibility(compatibilityCheckNodeName, filter) ?? false;
             },

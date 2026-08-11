@@ -99,7 +99,9 @@ describe('getVisualizationNodesFromGraph', () => {
     visualizationController.fromModel(model);
 
     const predicate = (vizNode: IVisualizationNode) => {
-      return vizNode.getNodeDefinition()?.disabled;
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      const def = (vizNode as unknown as { getNodeDefinition?: () => unknown }).getNodeDefinition?.();
+      return !!(def as { disabled?: boolean } | undefined)?.disabled;
     };
     const vizNodes = getVisualizationNodesFromGraph(visualizationController.getGraph(), predicate);
 

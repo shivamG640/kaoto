@@ -83,8 +83,8 @@ describe('CustomNode', () => {
       iconUrl: '',
     }) as IVisualizationNode;
     vi.spyOn(vizNode, 'getNodeLabel').mockReturnValue('log');
-    vi.spyOn(vizNode, 'getNodeDefinition').mockReturnValue(undefined);
-    vi.spyOn(vizNode, 'getNodeValidationText').mockReturnValue(undefined);
+    vi.spyOn(vizNode, 'fetchNodeDefinition').mockResolvedValue(undefined);
+    vi.spyOn(vizNode, 'getNodeValidationText').mockResolvedValue(undefined);
     vi.spyOn(vizNode, 'canDragNode').mockReturnValue(false);
     vi.spyOn(vizNode, 'canDropOnNode').mockReturnValue(false);
 

@@ -23,20 +23,23 @@ export const ComponentMode: FunctionComponent<{ vizNode?: IVisualizationNode }> 
 
       const path = vizNode.data.path;
       const rootEipPath = path?.split('.').slice(0, -1).join('.');
-      const definition = vizNode.getNodeDefinition();
-      if (!definition || !rootEipPath) return;
+      if (!rootEipPath) return;
 
-      /**
-       * Switch the used EIP for the component, it can go from 'to' to 'toD' or 'poll'
-       * and vice versa.
-       */
-      vizNode.data = { ...vizNode.data, path: rootEipPath };
-      vizNode.updateModel(undefined);
+      void vizNode.fetchNodeDefinition().then((definition) => {
+        if (!definition) return;
 
-      vizNode.data = { ...vizNode.data, path: `${rootEipPath}.${newProcessorName}`, processorName: newProcessorName };
-      vizNode.updateModel(definition);
-      updateSourceCodeFromEntities();
-      setProcessorName(newProcessorName);
+        /**
+         * Switch the used EIP for the component, it can go from 'to' to 'toD' or 'poll'
+         * and vice versa.
+         */
+        vizNode.data = { ...vizNode.data, path: rootEipPath };
+        vizNode.updateModel(undefined);
+
+        vizNode.data = { ...vizNode.data, path: `${rootEipPath}.${newProcessorName}`, processorName: newProcessorName };
+        vizNode.updateModel(definition);
+        updateSourceCodeFromEntities();
+        setProcessorName(newProcessorName);
+      });
     },
     [vizNode, processorName, updateSourceCodeFromEntities],
   );

@@ -32,7 +32,7 @@ export const useInsertStep = (
       const compatibleNodes = entitiesContext.camelResource.getCompatibleComponents(
         mode,
         vizNode.data,
-        vizNode.getNodeDefinition(),
+        await vizNode.fetchNodeDefinition(),
       );
       /** Open Catalog modal, filtering the compatible nodes */
       definedComponent = await catalogModalContext?.getNewComponent(compatibleNodes);

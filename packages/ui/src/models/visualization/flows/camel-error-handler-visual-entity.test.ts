@@ -148,10 +148,10 @@ describe('CamelErrorHandlerVisualEntity', () => {
     });
   });
 
-  it('should return undefined validation text', () => {
+  it('should return undefined validation text', async () => {
     const entity = new CamelErrorHandlerVisualEntity(errorHandlerDef);
 
-    expect(entity.getNodeValidationText()).toBeUndefined();
+    expect(await entity.getNodeValidationText()).toBeUndefined();
   });
 
   it('toVizNode should return visualization node', async () => {
@@ -188,5 +188,20 @@ describe('CamelErrorHandlerVisualEntity', () => {
     const entity = new CamelErrorHandlerVisualEntity(errorHandlerDef);
 
     expect(entity.toJSON()).toEqual(errorHandlerDef);
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should return the error handler definition', async () => {
+      const entity = new CamelErrorHandlerVisualEntity(errorHandlerDef);
+      const result = await entity.fetchNodeDefinition(undefined, {});
+      expect(result).toEqual(errorHandlerDef.errorHandler);
+    });
+
+    it('should return the same result as getNodeDefinition', async () => {
+      const entity = new CamelErrorHandlerVisualEntity(errorHandlerDef);
+      const syncResult = entity.getNodeDefinition();
+      const asyncResult = await entity.fetchNodeDefinition(undefined, {});
+      expect(asyncResult).toEqual(syncResult);
+    });
   });
 });

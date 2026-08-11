@@ -36,8 +36,8 @@ export class DataMapperStepService {
    * @returns The metadata ID
    */
   static getDataMapperMetadataId(vizNode: IVisualizationNode): string {
-    const model = vizNode.getNodeDefinition();
-    return model.id;
+    const model = vizNode.data.entity?.getNodeDefinition(vizNode.data.path);
+    return (model as { id?: string })?.id ?? '';
   }
 
   /**
@@ -53,12 +53,12 @@ export class DataMapperStepService {
     metadataId: string,
     entitiesContext: EntitiesContextResult,
   ): string {
-    const model = vizNode.getNodeDefinition();
-    const xsltStep = (model.steps as ProcessorDefinition[]).find(isXSLTComponent)!;
+    const model = vizNode.data.entity?.getNodeDefinition(vizNode.data.path) as { steps?: ProcessorDefinition[] } | undefined;
+    const xsltStep = (model?.steps as ProcessorDefinition[])?.find(isXSLTComponent)!;
     const documentName = `${metadataId}.xsl`;
 
     xsltStep.to.uri = `${XSLT_COMPONENT_NAME}:${documentName}`;
-    vizNode.updateModel(model);
+    vizNode.updateModel(model as unknown);
     entitiesContext.updateSourceCodeFromEntities();
 
     return documentName;
@@ -98,8 +98,8 @@ export class DataMapperStepService {
     isUseJsonBody: boolean,
     entitiesContext: EntitiesContextResult,
   ): void {
-    const model = vizNode.getNodeDefinition();
-    const xsltStep = (model.steps as ProcessorDefinition[])?.find(isXSLTComponent);
+    const model = vizNode.data.entity?.getNodeDefinition(vizNode.data.path) as { steps?: ProcessorDefinition[] } | undefined;
+    const xsltStep = (model?.steps as ProcessorDefinition[])?.find(isXSLTComponent);
 
     if (!xsltStep?.to || typeof xsltStep.to !== 'object') {
       return;
@@ -113,7 +113,7 @@ export class DataMapperStepService {
       delete xsltStep.to.parameters.useJsonBody;
     }
 
-    vizNode.updateModel(model);
+    vizNode.updateModel(model as unknown);
     entitiesContext.updateSourceCodeFromEntities();
   }
 
@@ -122,8 +122,8 @@ export class DataMapperStepService {
     newFileName: string,
     entitiesContext: EntitiesContextResult,
   ): void {
-    const model = vizNode.getNodeDefinition();
-    const xsltStep = (model.steps as ProcessorDefinition[]).find(isXSLTComponent);
+    const model = vizNode.data.entity?.getNodeDefinition(vizNode.data.path) as { steps?: ProcessorDefinition[] } | undefined;
+    const xsltStep = (model?.steps as ProcessorDefinition[])?.find(isXSLTComponent);
 
     if (!xsltStep?.to || typeof xsltStep.to !== 'object') {
       return;

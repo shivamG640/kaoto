@@ -544,11 +544,11 @@ describe('Canvas', () => {
     const graph = controller.getGraph();
     const routeGroup = controller
       .getElements()
-      .find(
-        (element) =>
-          isNode(element) &&
-          (element.getData()?.vizNode as IVisualizationNode | undefined)?.getNodeDefinition()?.id === 'route-8888',
-      );
+      .find((element) => {
+        if (!isNode(element)) return false;
+        const vn = element.getData()?.vizNode as IVisualizationNode | undefined;
+        return (vn?.data.entity?.getNodeDefinition(vn.data.path) as { id?: string } | undefined)?.id === 'route-8888';
+      });
     expect(routeGroup && isNode(routeGroup)).toBe(true);
     if (!routeGroup || !isNode(routeGroup)) {
       throw new Error('Expected route group was not found');
@@ -595,11 +595,11 @@ describe('Canvas', () => {
 
     const remountedRouteGroup = controller
       .getElements()
-      .find(
-        (element) =>
-          isNode(element) &&
-          (element.getData()?.vizNode as IVisualizationNode | undefined)?.getNodeDefinition()?.id === 'route-8888',
-      );
+      .find((element) => {
+        if (!isNode(element)) return false;
+        const vn = element.getData()?.vizNode as IVisualizationNode | undefined;
+        return (vn?.data.entity?.getNodeDefinition(vn.data.path) as { id?: string } | undefined)?.id === 'route-8888';
+      });
     expect(remountedRouteGroup && isNode(remountedRouteGroup) && remountedRouteGroup.isCollapsed()).toBe(true);
   });
 });

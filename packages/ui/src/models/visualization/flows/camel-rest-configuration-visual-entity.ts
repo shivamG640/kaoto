@@ -110,6 +110,10 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualEntity {
     return { ...this.restConfigurationDef.restConfiguration };
   }
 
+  async fetchNodeDefinition(_path: string | undefined, _ids: IVisualizationNodeIds): Promise<unknown> {
+    return { ...this.restConfigurationDef.restConfiguration };
+  }
+
   getOmitFormFields(): string[] {
     return [];
   }
@@ -137,7 +141,7 @@ export class CamelRestConfigurationVisualEntity implements BaseVisualEntity {
     };
   }
 
-  getNodeValidationText(): string | undefined {
+  async getNodeValidationText(): Promise<string | undefined> {
     const schema = this.getNodeSchema();
     if (!schema) return undefined;
 

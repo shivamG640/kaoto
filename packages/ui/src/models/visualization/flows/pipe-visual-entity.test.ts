@@ -508,24 +508,24 @@ describe('Pipe', () => {
   });
 
   describe('getNodeValidationText', () => {
-    it('should return an `undefined` if the path is `undefined`', () => {
-      const result = pipeVisualEntity.getNodeValidationText();
+    it('should return an `undefined` if the path is `undefined`', async () => {
+      const result = await pipeVisualEntity.getNodeValidationText();
 
       expect(result).toBeUndefined();
     });
 
-    it('should return an `undefined` if the path is empty', () => {
-      const result = pipeVisualEntity.getNodeValidationText('');
+    it('should return an `undefined` if the path is empty', async () => {
+      const result = await pipeVisualEntity.getNodeValidationText('');
 
       expect(result).toBeUndefined();
     });
 
-    it('should return a validation text relying on the `validateNodeStatus` method', () => {
+    it('should return a validation text relying on the `validateNodeStatus` method', async () => {
       const missingParametersModel = cloneDeep(pipeJson);
       missingParametersModel.spec!.steps![0].properties = {};
       pipeVisualEntity = new PipeVisualEntity(missingParametersModel);
 
-      const result = pipeVisualEntity.getNodeValidationText('steps.0');
+      const result = await pipeVisualEntity.getNodeValidationText('steps.0');
 
       expect(result).toBe('1 required parameter is not yet configured: [ milliseconds ]');
     });
@@ -836,6 +836,30 @@ describe('Pipe', () => {
         name: 'delay-action',
         definition: undefined,
       });
+    });
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should return undefined if no path is provided', async () => {
+      const result = await pipeVisualEntity.fetchNodeDefinition(undefined, {});
+      expect(result).toBeUndefined();
+    });
+
+    it('should return custom schema from pipe when path is root path', async () => {
+      const result = await pipeVisualEntity.fetchNodeDefinition('pipe', {});
+      expect(result).toBeDefined();
+    });
+
+    it('should return the same result as getNodeDefinition for the root path', async () => {
+      const syncResult = pipeVisualEntity.getNodeDefinition('pipe');
+      const asyncResult = await pipeVisualEntity.fetchNodeDefinition('pipe', {});
+      expect(asyncResult).toEqual(syncResult);
+    });
+
+    it('should return the same result as getNodeDefinition for a step path', async () => {
+      const syncResult = pipeVisualEntity.getNodeDefinition('source');
+      const asyncResult = await pipeVisualEntity.fetchNodeDefinition('source', {});
+      expect(asyncResult).toEqual(syncResult);
     });
   });
 });

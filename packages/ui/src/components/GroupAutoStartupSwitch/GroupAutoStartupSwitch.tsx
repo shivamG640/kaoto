@@ -28,7 +28,7 @@ export const GroupAutoStartupSwitch: FunctionComponent<IGroupAutoStartupSwitchPr
   }
 
   // Get the current autoStartup value from the route definition
-  const routeDefinition: RouteDefinition = entity.getNodeDefinition(CamelRouteVisualEntity.ROOT_PATH);
+  const routeDefinition = entity.getNodeDefinition(CamelRouteVisualEntity.ROOT_PATH) as RouteDefinition | undefined;
   const autoStartupValue = routeDefinition?.autoStartup;
 
   // Only treat actual boolean false as disabled; strings (including "false" or placeholders like "{{...}}")

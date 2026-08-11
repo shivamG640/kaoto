@@ -56,7 +56,7 @@ describe('useInsertStep', () => {
       description: '',
     });
     mockVizNode.addBaseEntityStep = vi.fn();
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue({});
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({});
     mockVizNode.getChildren = vi.fn().mockReturnValue([mockVizNode]);
     vi.spyOn(camelResource, 'getCompatibleComponents').mockReturnValue(mockCompatibleComponents);
     mockController.fromModel.mockClear();
@@ -222,7 +222,7 @@ describe('useInsertStep', () => {
 
   it('should pass component definition from component schema', async () => {
     const mockComponentDefinition = { id: 'existing-component', type: 'existing' };
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(mockComponentDefinition);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(mockComponentDefinition);
     mockCatalogModalContext.getNewComponent.mockResolvedValue(mockDefinedComponent);
 
     const { result } = renderHook(() => useInsertStep(mockVizNode, AddStepMode.InsertChildStep), { wrapper });
@@ -237,7 +237,7 @@ describe('useInsertStep', () => {
   });
 
   it('should handle undefined component schema', async () => {
-    mockVizNode.getNodeDefinition = vi.fn().mockReturnValue(undefined);
+    mockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue(undefined);
     mockCatalogModalContext.getNewComponent.mockResolvedValue(mockDefinedComponent);
 
     const { result } = renderHook(() => useInsertStep(mockVizNode, AddStepMode.InsertChildStep), { wrapper });
@@ -268,7 +268,7 @@ describe('useInsertStep', () => {
       description: '',
     });
     newMockVizNode.addBaseEntityStep = vi.fn();
-    newMockVizNode.getNodeDefinition = vi.fn().mockReturnValue({});
+    newMockVizNode.fetchNodeDefinition = vi.fn().mockResolvedValue({});
 
     rerender({ vizNode: newMockVizNode, mode: AddStepMode.InsertChildStep });
 

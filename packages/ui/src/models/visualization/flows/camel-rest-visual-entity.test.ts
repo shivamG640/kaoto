@@ -422,7 +422,7 @@ describe('CamelRestVisualEntity', () => {
   });
 
   describe('getNodeValidationText', () => {
-    it('should return undefined for valid definitions', () => {
+    it('should return undefined for valid definitions', async () => {
       const entity = new CamelRestVisualEntity({
         rest: {
           ...restDef.rest,
@@ -430,19 +430,19 @@ describe('CamelRestVisualEntity', () => {
         },
       });
 
-      expect(entity.getNodeValidationText()).toBeUndefined();
+      expect(await entity.getNodeValidationText()).toBeUndefined();
     });
 
-    it('should not modify the original definition when validating', () => {
+    it('should not modify the original definition when validating', async () => {
       const originalRestDef: Rest = { ...restDef.rest };
       const entity = new CamelRestVisualEntity(restDef);
 
-      entity.getNodeValidationText();
+      await entity.getNodeValidationText();
 
       expect(restDef.rest).toEqual(originalRestDef);
     });
 
-    it('should NOT return errors when there is an invalid property', () => {
+    it('should NOT return errors when there is an invalid property', async () => {
       const invalidRestDef: Rest = {
         ...restDef.rest,
         bindingMode: 'true' as unknown as Rest['bindingMode'],
@@ -450,7 +450,7 @@ describe('CamelRestVisualEntity', () => {
       };
       const entity = new CamelRestVisualEntity({ rest: invalidRestDef });
 
-      expect(entity.getNodeValidationText()).toBeUndefined();
+      expect(await entity.getNodeValidationText()).toBeUndefined();
     });
   });
 
@@ -481,5 +481,26 @@ describe('CamelRestVisualEntity', () => {
     const entity = new CamelRestVisualEntity(restDef);
 
     expect(entity.toJSON()).toEqual(restDef);
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should return root REST definition for root path', async () => {
+      const entity = new CamelRestVisualEntity(restDef);
+      const result = await entity.fetchNodeDefinition(CamelRestVisualEntity.ROOT_PATH, {});
+      expect(result).toEqual(restDef.rest);
+    });
+
+    it('should return method definition for a REST DSL method path', async () => {
+      const entity = new CamelRestVisualEntity(restDef);
+      const result = await entity.fetchNodeDefinition('rest.get.0', {});
+      expect(result).toEqual(entity.getNodeDefinition('rest.get.0'));
+    });
+
+    it('should return the same result as getNodeDefinition for root path', async () => {
+      const entity = new CamelRestVisualEntity(restDef);
+      const syncResult = entity.getNodeDefinition(CamelRestVisualEntity.ROOT_PATH);
+      const asyncResult = await entity.fetchNodeDefinition(CamelRestVisualEntity.ROOT_PATH, {});
+      expect(asyncResult).toEqual(syncResult);
+    });
   });
 });

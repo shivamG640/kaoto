@@ -16,7 +16,11 @@ export function applyCollapseState(controller: Controller): void {
     collapsedIds.forEach((id) => {
       const node = controller
         .getElements()
-        .find((el) => isNode(el) && (el.getData()?.vizNode as IVisualizationNode)?.getNodeDefinition()?.id === id);
+        .find((el) => {
+          if (!isNode(el)) return false;
+          const vn = el.getData()?.vizNode as IVisualizationNode | undefined;
+          return (vn?.data.entity?.getNodeDefinition(vn.data.path) as { id?: string } | undefined)?.id === id;
+        });
       if (node) {
         (node as Node).setCollapsed(true);
         (node as Node).setDimensions(

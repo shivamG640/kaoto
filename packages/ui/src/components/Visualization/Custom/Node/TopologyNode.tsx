@@ -1,6 +1,7 @@
 import { AnchorEnd, ElementModel, GraphElement, isNode, observer, useAnchor } from '@patternfly/react-topology';
-import { FunctionComponent, useCallback } from 'react';
+import { FunctionComponent, useCallback, useEffect, useState } from 'react';
 
+import { useNodeDefinition } from '../../../../hooks';
 import { IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
 import { CamelRouteVisualEntityData } from '../../../../models/visualization/flows/support/camel-component-types';
 import { getProcessorIcon } from '../../../../utils/processor-icon';
@@ -36,12 +37,16 @@ export const TopologyNode: FunctionComponent<TopologyRouteNodeProps> = observer(
   const processorName = (vizNode.data as CamelRouteVisualEntityData).processorName;
   const ProcessorIcon = getProcessorIcon(processorName);
   const processorDescription = vizNode.data.processorIconTooltip ?? '';
-  const definition = vizNode.getNodeDefinition() as { disabled?: boolean; description?: string } | undefined;
+  const definition = useNodeDefinition(vizNode) as { disabled?: boolean; description?: string } | undefined;
   const label = definition?.description?.trim() || vizNode.getNodeLabel();
   const bounds = element.getBounds();
   const width = bounds.width;
-  const isDisabled = !!vizNode?.getNodeDefinition()?.disabled;
-  const validationText = vizNode?.getNodeValidationText();
+  const isDisabled = !!definition?.disabled;
+  const lastUpdate = vizNode.lastUpdate;
+  const [validationText, setValidationText] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    void vizNode?.getNodeValidationText().then(setValidationText);
+  }, [vizNode, lastUpdate]);
   const doesHaveWarnings = !isDisabled && !!validationText;
   const labelX = (width - CanvasDefaults.DEFAULT_LABEL_WIDTH) / 2;
 

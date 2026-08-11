@@ -101,6 +101,11 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
     return this.getBaseEntity()?.getNodeSchema(this.data.path);
   }
 
+  /** @deprecated Use {@link fetchNodeDefinition} instead. */
+  getNodeDefinition(): unknown {
+    return this.getBaseEntity()?.getNodeDefinition(this.data.path);
+  }
+
   async fetchSchema(): Promise<KaotoSchemaDefinition['schema'] | undefined> {
     const baseEntity = this.getBaseEntity();
     if (!baseEntity) {
@@ -116,8 +121,17 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
     return schema;
   }
 
-  getNodeDefinition(): unknown {
-    return this.getBaseEntity()?.getNodeDefinition(this.data.path);
+  async fetchNodeDefinition(): Promise<unknown> {
+    const baseEntity = this.getBaseEntity();
+    if (!baseEntity) {
+      return undefined;
+    }
+    const ids: IVisualizationNodeIds = {
+      primaryNodeId: this.data.primaryNodeId,
+      secondaryNodeId: this.data.secondaryNodeId,
+      tertiaryNodeId: this.data.tertiaryNodeId,
+    };
+    return baseEntity.fetchNodeDefinition(this.data.path, ids);
   }
 
   getOmitFormFields(): string[] {
@@ -175,7 +189,7 @@ class VisualizationNode<T extends IVisualizationNodeData = IVisualizationNodeDat
     }
   }
 
-  getNodeValidationText(): string | undefined {
+  async getNodeValidationText(): Promise<string | undefined> {
     return this.getBaseEntity()?.getNodeValidationText(this.data.path);
   }
 

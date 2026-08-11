@@ -452,10 +452,7 @@ exports[`CanvasForm > should render nothing if no schema and no definition is av
               >
                 <code
                   class="pf-v6-c-code-block__code"
-                >
-                  null
-
-                </code>
+                />
               </pre>
             </div>
           </div>

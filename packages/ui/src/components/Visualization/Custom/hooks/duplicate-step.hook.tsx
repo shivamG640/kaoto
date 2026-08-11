@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash';
 import { useCallback, useContext, useMemo } from 'react';
 
 import { CatalogModalContext } from '../../../../dynamic-catalog/catalog-modal.provider';
+import { useNodeDefinition } from '../../../../hooks';
 import { SourceSchemaType } from '../../../../models/camel/source-schema-type';
 import { EntityType } from '../../../../models/entities';
 import { AddStepMode, IVisualizationNode } from '../../../../models/visualization/base-visual-entity';
@@ -37,6 +38,8 @@ export const useDuplicateStep = (vizNode: IVisualizationNode) => {
     );
   }
   const parentVizNode = vizNode.getParentNode();
+  const vizNodeDef = useNodeDefinition(vizNode);
+  const parentVizNodeDef = useNodeDefinition(parentVizNode);
 
   const canDuplicate = useMemo(() => {
     if (!isDefined(vizNodeContent)) return false;
@@ -46,7 +49,7 @@ export const useDuplicateStep = (vizNode: IVisualizationNode) => {
       const filter = entitiesContext.camelResource.getCompatibleComponents(
         AddStepMode.AppendStep,
         vizNode.data,
-        vizNode.getNodeDefinition(),
+        vizNodeDef,
       );
 
       /** Check paste compatibility */
@@ -58,7 +61,7 @@ export const useDuplicateStep = (vizNode: IVisualizationNode) => {
       const filter = entitiesContext.camelResource.getCompatibleComponents(
         AddStepMode.InsertSpecialChildStep,
         parentVizNode.data,
-        parentVizNode.getNodeDefinition(),
+        parentVizNodeDef,
       );
 
       /** Check paste compatibility */
@@ -71,7 +74,7 @@ export const useDuplicateStep = (vizNode: IVisualizationNode) => {
     }
 
     return false;
-  }, [catalogModalContext, entitiesContext, parentVizNode, vizNode, vizNodeContent]);
+  }, [catalogModalContext, entitiesContext, parentVizNode, parentVizNodeDef, vizNode, vizNodeContent, vizNodeDef]);
 
   const onDuplicate = useCallback(async () => {
     if (!vizNode || !vizNodeContent || !entitiesContext) return;

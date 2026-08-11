@@ -73,13 +73,13 @@ describe('getDropTargetContainerClassNames', () => {
 
 describe('canDropOnEdge', () => {
   const getMockVizNode = (id: string): IVisualizationNode => {
+    const mockEntity = { getNodeDefinition: vi.fn().mockReturnValue({}) };
     return {
       id,
-      data: { path: `route.from.steps.${id}` },
+      data: { path: `route.from.steps.${id}`, entity: mockEntity },
       getNextNode: vi.fn(),
       getPreviousNode: vi.fn(),
       getCopiedContent: vi.fn().mockReturnValue({ name: 'test-component' }),
-      getNodeDefinition: vi.fn().mockReturnValue({}),
     } as unknown as IVisualizationNode;
   };
 
@@ -205,7 +205,7 @@ describe('canDropOnEdge', () => {
     expect(camelResource.getCompatibleComponents).toHaveBeenCalledWith(
       AddStepMode.PrependStep,
       targetVizNode.data,
-      targetVizNode.getNodeDefinition(),
+      targetVizNode.data.entity?.getNodeDefinition(targetVizNode.data.path),
     );
     expect(catalogModalContext.checkCompatibility).toHaveBeenCalledWith('test-component', mockFilter);
   });
@@ -221,7 +221,7 @@ describe('canDropOnEdge', () => {
     expect(camelResource.getCompatibleComponents).toHaveBeenCalledWith(
       AddStepMode.PrependStep,
       targetVizNode.data,
-      targetVizNode.getNodeDefinition(),
+      targetVizNode.data.entity?.getNodeDefinition(targetVizNode.data.path),
     );
     expect(catalogModalContext.checkCompatibility).toHaveBeenCalledWith('test-component', mockFilter);
   });

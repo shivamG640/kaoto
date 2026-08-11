@@ -191,7 +191,7 @@ describe('DataMapperLauncher', () => {
     };
 
     return {
-      getNodeDefinition: vi.fn().mockReturnValue(mockModel),
+      fetchNodeDefinition: vi.fn().mockResolvedValue(mockModel),
       updateModel: vi.fn(),
     } as unknown as IVisualizationNode;
   };
@@ -286,7 +286,7 @@ describe('DataMapperLauncher', () => {
       ).toBeInTheDocument();
     });
 
-    it('should navigate to DataMapper page when Configure button is clicked', () => {
+    it('should navigate to DataMapper page when Configure button is clicked', async () => {
       const vizNode = createMockVizNode('test-document.xsl');
       (DataMapperStepService.getXsltFileName as Mock).mockReturnValue('test-document.xsl');
 
@@ -295,16 +295,20 @@ describe('DataMapperLauncher', () => {
       const configureButton = screen.getByRole('button', { name: /Launch the Kaoto DataMapper editor/i });
       fireEvent.click(configureButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(`${Links.DataMapper}/test-node-id`);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(`${Links.DataMapper}/test-node-id`);
+      });
     });
 
-    it('should handle navigation when vizNode is undefined', () => {
+    it('should handle navigation when vizNode is undefined', async () => {
       render(<DataMapperLauncher />, { wrapper });
 
       const configureButton = screen.getByRole('button', { name: /Launch the Kaoto DataMapper editor/i });
       fireEvent.click(configureButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(`${Links.DataMapper}/undefined`);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(`${Links.DataMapper}/undefined`);
+      });
     });
 
     it('should render help icon with popover', async () => {

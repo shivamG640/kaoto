@@ -15,12 +15,14 @@
 */
 import './DataMapperLauncher.scss';
 
+import { ProcessorDefinition } from '@kaoto/camel-catalog/types';
 import { isDefined } from '@kaoto/forms';
 import { Alert, Button, FormGroup, HelperText, HelperTextItem, Popover } from '@patternfly/react-core';
 import { HelpIcon, WrenchIcon } from '@patternfly/react-icons';
 import { FunctionComponent, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useNodeDefinition } from '../../hooks';
 import { IVisualizationNode, ValidationResult, ValidationStatus } from '../../models';
 import { IDataMapperMetadata } from '../../models/datamapper/metadata';
 import { EntitiesContext } from '../../providers';
@@ -29,7 +31,6 @@ import { Links } from '../../router/links.models';
 import { DataMapperMetadataService } from '../../services/datamapper-metadata.service';
 import { DataMapperStepService } from '../../services/datamapper-step.service';
 import { isXSLTComponent } from '../../utils';
-import type { XsltComponentDef } from '../../utils/is-xslt-component';
 import XsltDocumentRenameInput from './XsltDocumentRenameInput';
 
 // XSLT filename validation regex
@@ -53,12 +54,14 @@ export const DataMapperLauncher: FunctionComponent<{ vizNode?: IVisualizationNod
   const [isEditingFilename, setIsEditingFilename] = useState<boolean>(false);
   const [isSavingFile, setIsSavingFile] = useState<boolean>(false);
 
+  const nodeDef = useNodeDefinition(vizNode) as { steps?: unknown[] } | undefined;
+
   const xsltDocumentName = useMemo(() => {
-    const xsltComponent = vizNode?.getNodeDefinition()?.steps?.find(isXSLTComponent) as XsltComponentDef;
+    const xsltComponent = (nodeDef?.steps as ProcessorDefinition[] | undefined)?.find(isXSLTComponent);
     const fileName = DataMapperStepService.getXsltFileName(xsltComponent);
     // Use local state if set, otherwise use the value from vizNode
     return currentFileName ?? fileName;
-  }, [vizNode, currentFileName]);
+  }, [nodeDef, currentFileName]);
 
   const isXsltDocumentDefined = useMemo(() => {
     return isDefined(xsltDocumentName);
@@ -144,7 +147,8 @@ export const DataMapperLauncher: FunctionComponent<{ vizNode?: IVisualizationNod
   );
 
   const onClick = useCallback(async () => {
-    await navigate(`${Links.DataMapper}/${vizNode?.getNodeDefinition()?.id}`);
+    const definition = await vizNode?.fetchNodeDefinition();
+    await navigate(`${Links.DataMapper}/${(definition as { id?: string })?.id}`);
   }, [navigate, vizNode]);
 
   if (!isDefined(metadata)) {

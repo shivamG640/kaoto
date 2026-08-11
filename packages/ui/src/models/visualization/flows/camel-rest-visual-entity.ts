@@ -19,6 +19,7 @@ import {
   BaseVisualEntity,
   IVisualizationNode,
   IVisualizationNodeData,
+  IVisualizationNodeIds,
   NodeInteraction,
 } from '../base-visual-entity';
 import { NodeIdentity } from '../node-identity';
@@ -103,6 +104,21 @@ export class CamelRestVisualEntity extends AbstractCamelVisualEntity<{ rest: Res
     }
 
     return super.getNodeDefinition(path);
+  }
+
+  async fetchNodeDefinition(path: string | undefined, ids: IVisualizationNodeIds): Promise<unknown> {
+    if (path === CamelRestVisualEntity.ROOT_PATH) {
+      return { ...this.restDef.rest };
+    }
+
+    /** If we're targetting a Rest method, the path would be `rest.get.0` */
+    const pathSegments = path?.split('.') ?? [];
+    const method = (pathSegments[1] ?? '') as RestMethods;
+    if (isDefined(path) && pathSegments.length === 3 && REST_DSL_VERBS.includes(method)) {
+      return { ...getValue(this.restDef, path) };
+    }
+
+    return super.fetchNodeDefinition(path, ids);
   }
 
   updateModel(path: string | undefined, value: unknown): void {

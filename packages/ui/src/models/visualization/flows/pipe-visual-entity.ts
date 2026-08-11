@@ -96,12 +96,21 @@ export class PipeVisualEntity implements BaseVisualEntity {
     return definition?.propertiesSchema;
   }
 
+  /** @deprecated Use {@link fetchNodeDefinition} instead. */
   getNodeDefinition(path?: string): unknown {
     if (!path) return undefined;
     if (path === this.getRootPath()) {
       return getCustomSchemaFromPipe(this.pipe);
     }
+    const stepModel: PipeStep = getValue(this.pipe.spec, path);
+    return stepModel?.properties ?? {};
+  }
 
+  async fetchNodeDefinition(path: string | undefined, _ids: IVisualizationNodeIds): Promise<unknown> {
+    if (!path) return undefined;
+    if (path === this.getRootPath()) {
+      return getCustomSchemaFromPipe(this.pipe);
+    }
     const stepModel: PipeStep = getValue(this.pipe.spec, path);
     return stepModel?.properties ?? {};
   }
@@ -225,9 +234,9 @@ export class PipeVisualEntity implements BaseVisualEntity {
     };
   }
 
-  getNodeValidationText(path?: string | undefined): string | undefined {
+  async getNodeValidationText(path?: string | undefined): Promise<string | undefined> {
     const schema = this.getNodeSchema(path);
-    const definition = this.getNodeDefinition(path);
+    const definition = await this.fetchNodeDefinition(path, {});
     if (!schema || !definition) return undefined;
 
     return ModelValidationService.validateNodeStatus(schema, definition);

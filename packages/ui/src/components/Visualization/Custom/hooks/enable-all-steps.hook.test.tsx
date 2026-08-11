@@ -129,7 +129,7 @@ describe('useEnableAllSteps', () => {
       title: '',
       description: '',
     });
-    enabledNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: false });
+    enabledNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: false });
 
     const disabledNode = createVisualizationNode('disabled', {
       name: EntityType.Route,
@@ -140,7 +140,7 @@ describe('useEnableAllSteps', () => {
       title: '',
       description: '',
     });
-    disabledNode.getNodeDefinition = vi.fn().mockReturnValue({ disabled: true });
+    disabledNode.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: true });
 
     expect(filterFunction?.(enabledNode)).toBe(false);
     expect(filterFunction?.(disabledNode)).toBe(true);
@@ -157,7 +157,7 @@ describe('useEnableAllSteps', () => {
       description: '',
     });
     const mockDefinition1 = { disabled: true, id: 'step1' };
-    disabledNode1.getNodeDefinition = vi.fn().mockReturnValue(mockDefinition1);
+    disabledNode1.fetchNodeDefinition = vi.fn().mockResolvedValue(mockDefinition1);
     disabledNode1.updateModel = vi.fn();
 
     const disabledNode2 = createVisualizationNode('disabled-step-2', {
@@ -170,7 +170,7 @@ describe('useEnableAllSteps', () => {
       description: '',
     });
     const mockDefinition2 = { disabled: true, id: 'step2' };
-    disabledNode2.getNodeDefinition = vi.fn().mockReturnValue(mockDefinition2);
+    disabledNode2.fetchNodeDefinition = vi.fn().mockResolvedValue(mockDefinition2);
     disabledNode2.updateModel = vi.fn();
 
     mockGetVisualizationNodesFromGraph.mockReturnValue([disabledNode1, disabledNode2]);
@@ -197,7 +197,7 @@ describe('useEnableAllSteps', () => {
       description: '',
     });
     const mockDefinition = {};
-    disabledNode.getNodeDefinition = vi.fn().mockReturnValue(mockDefinition);
+    disabledNode.fetchNodeDefinition = vi.fn().mockResolvedValue(mockDefinition);
     disabledNode.updateModel = vi.fn();
 
     mockGetVisualizationNodesFromGraph.mockReturnValue([disabledNode]);
@@ -220,7 +220,7 @@ describe('useEnableAllSteps', () => {
       title: '',
       description: '',
     });
-    disabledNode.getNodeDefinition = vi.fn().mockReturnValue(undefined);
+    disabledNode.fetchNodeDefinition = vi.fn().mockResolvedValue(undefined);
     disabledNode.updateModel = vi.fn();
 
     mockGetVisualizationNodesFromGraph.mockReturnValue([disabledNode]);
@@ -272,7 +272,7 @@ describe('useEnableAllSteps', () => {
       title: '',
       description: '',
     });
-    disabledNode1.getNodeDefinition = vi.fn().mockReturnValue({ disabled: true });
+    disabledNode1.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: true });
     const disabledNode2 = createVisualizationNode('disabled-step-2', {
       name: EntityType.Route,
       isPlaceholder: false,
@@ -281,7 +281,7 @@ describe('useEnableAllSteps', () => {
       title: '',
       description: '',
     });
-    disabledNode2.getNodeDefinition = vi.fn().mockReturnValue({ disabled: true });
+    disabledNode2.fetchNodeDefinition = vi.fn().mockResolvedValue({ disabled: true });
 
     mockGetVisualizationNodesFromGraph.mockReturnValue([disabledNode1, disabledNode2]);
 

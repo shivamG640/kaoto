@@ -88,7 +88,7 @@ describe('CanvasForm', () => {
     });
 
     vi.spyOn(noSchemaVizNode, 'getNodeSchema').mockReturnValue(undefined);
-    vi.spyOn(noSchemaVizNode, 'getNodeDefinition').mockReturnValue(undefined);
+    vi.spyOn(noSchemaVizNode, 'fetchNodeDefinition').mockResolvedValue(undefined);
 
     const { Provider } = await TestProvidersWrapper();
     const { container } = render(
@@ -116,7 +116,7 @@ describe('CanvasForm', () => {
     });
 
     vi.spyOn(noSchemaVizNode, 'getNodeSchema').mockReturnValue(null as unknown as KaotoSchemaDefinition['schema']);
-    vi.spyOn(noSchemaVizNode, 'getNodeDefinition').mockReturnValue(null);
+    vi.spyOn(noSchemaVizNode, 'fetchNodeDefinition').mockResolvedValue(null);
 
     const { Provider } = await TestProvidersWrapper();
     const { container } = render(

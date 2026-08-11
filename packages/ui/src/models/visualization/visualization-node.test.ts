@@ -101,10 +101,10 @@ describe('VisualizationNode', () => {
     expect(getNodeSchemaSpy).toHaveBeenCalledWith(node.data.path);
   });
 
-  it('should return the node definition from the underlying BaseVisualCamelEntity', () => {
-    const getNodeDefinitionSpy = vi.fn();
+  it('should delegate fetchNodeDefinition() to the underlying BaseVisualCamelEntity', async () => {
+    const fetchNodeDefinitionSpy = vi.fn().mockResolvedValue({});
     const visualEntity = {
-      getNodeDefinition: getNodeDefinitionSpy,
+      fetchNodeDefinition: fetchNodeDefinitionSpy,
     } as unknown as BaseVisualEntity;
 
     node = createVisualizationNode('test', {
@@ -117,9 +117,9 @@ describe('VisualizationNode', () => {
       description: '',
       iconUrl: '',
     });
-    node.getNodeDefinition();
+    await node.fetchNodeDefinition();
 
-    expect(getNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path);
+    expect(fetchNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path, expect.any(Object));
   });
 
   it('should delegate getOmitFormFields() to the underlying BaseVisualCamelEntity', () => {
@@ -207,11 +207,11 @@ describe('VisualizationNode', () => {
     expect(getNodeSchemaSpy).toHaveBeenCalledWith(node.data.path);
   });
 
-  it('should return the node definition from the root node', () => {
+  it('should delegate fetchNodeDefinition() to the root node entity', async () => {
     /** Arrange */
-    const getNodeDefinitionSpy = vi.fn();
+    const fetchNodeDefinitionSpy = vi.fn().mockResolvedValue({});
     const visualEntity = {
-      getNodeDefinition: getNodeDefinitionSpy,
+      fetchNodeDefinition: fetchNodeDefinitionSpy,
     } as unknown as BaseVisualEntity;
 
     const rootNode = createVisualizationNode('test', {
@@ -227,10 +227,10 @@ describe('VisualizationNode', () => {
     node.setParentNode(rootNode);
 
     /** Act */
-    node.getNodeDefinition();
+    await node.fetchNodeDefinition();
 
     /** Assert */
-    expect(getNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path);
+    expect(fetchNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path, expect.any(Object));
   });
 
   describe('updateModel', () => {
@@ -446,7 +446,7 @@ describe('VisualizationNode', () => {
   });
 
   describe('getNodeValidationText', () => {
-    it('should return undefined when the underlying BaseVisualCamelEntity is not defined', () => {
+    it('should return undefined when the underlying BaseVisualCamelEntity is not defined', async () => {
       node = createVisualizationNode('test', {
         name: 'log',
         isGroup: false,
@@ -455,13 +455,13 @@ describe('VisualizationNode', () => {
         description: '',
         iconUrl: '',
       });
-      const validationText = node.getNodeValidationText();
+      const validationText = await node.getNodeValidationText();
 
       expect(validationText).toBeUndefined();
     });
 
-    it('should return the validation text from the underlying BaseVisualCamelEntity', () => {
-      const getNodeValidationTextSpy = vi.fn().mockReturnValue('test-validation-text');
+    it('should return the validation text from the underlying BaseVisualCamelEntity', async () => {
+      const getNodeValidationTextSpy = vi.fn().mockResolvedValue('test-validation-text');
       const visualEntity = {
         getNodeValidationText: getNodeValidationTextSpy,
       } as unknown as BaseVisualEntity;
@@ -476,7 +476,7 @@ describe('VisualizationNode', () => {
         description: '',
         iconUrl: '',
       });
-      const validationText = node.getNodeValidationText();
+      const validationText = await node.getNodeValidationText();
 
       expect(getNodeValidationTextSpy).toHaveBeenCalledWith(node.data.path);
       expect(validationText).toBe('test-validation-text');
@@ -712,6 +712,81 @@ describe('VisualizationNode', () => {
       await node.fetchSchema();
 
       expect(fetchNodeSchemaSpy).toHaveBeenCalledWith({
+        primaryNodeId,
+        secondaryNodeId,
+        tertiaryNodeId: undefined,
+      });
+    });
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should resolve to undefined when there is no base entity', async () => {
+      node = createVisualizationNode('orphan', {
+        name: 'orphan',
+        isPlaceholder: true,
+        isGroup: false,
+        iconUrl: '',
+        title: '',
+        description: '',
+      });
+
+      const result = await node.fetchNodeDefinition();
+      expect(result).toBeUndefined();
+    });
+
+    it('should delegate to baseEntity.fetchNodeDefinition with path and node identity fields', async () => {
+      const mockDefinition = { uri: 'timer', parameters: { period: 1000 } };
+      const fetchNodeDefinitionSpy = vi.fn().mockResolvedValue(mockDefinition);
+      const visualEntity = { fetchNodeDefinition: fetchNodeDefinitionSpy } as unknown as BaseVisualEntity;
+
+      node = createVisualizationNode('test', {
+        name: 'timer',
+        path: 'route.from',
+        entity: visualEntity,
+        isPlaceholder: false,
+        isGroup: false,
+        iconUrl: '',
+        title: '',
+        description: '',
+        primaryNodeId: { name: 'from', catalogKind: 'processor' as never },
+        secondaryNodeId: { name: 'timer', catalogKind: 'component' as never },
+        tertiaryNodeId: undefined,
+      });
+
+      const result = await node.fetchNodeDefinition();
+
+      expect(fetchNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path, {
+        primaryNodeId: node.data.primaryNodeId,
+        secondaryNodeId: node.data.secondaryNodeId,
+        tertiaryNodeId: node.data.tertiaryNodeId,
+      });
+      expect(result).toBe(mockDefinition);
+    });
+
+    it('should pass all three identity fields (including undefined ones) to fetchNodeDefinition', async () => {
+      const fetchNodeDefinitionSpy = vi.fn().mockResolvedValue(undefined);
+      const visualEntity = { fetchNodeDefinition: fetchNodeDefinitionSpy } as unknown as BaseVisualEntity;
+
+      const primaryNodeId = { name: 'to', catalogKind: 'processor' as never };
+      const secondaryNodeId = { name: 'log', catalogKind: 'component' as never };
+
+      node = createVisualizationNode('test', {
+        name: 'log',
+        path: 'route.from.steps.0.to',
+        entity: visualEntity,
+        isPlaceholder: false,
+        isGroup: false,
+        iconUrl: '',
+        title: '',
+        description: '',
+        primaryNodeId,
+        secondaryNodeId,
+        // tertiaryNodeId intentionally absent
+      });
+
+      await node.fetchNodeDefinition();
+
+      expect(fetchNodeDefinitionSpy).toHaveBeenCalledWith(node.data.path, {
         primaryNodeId,
         secondaryNodeId,
         tertiaryNodeId: undefined,

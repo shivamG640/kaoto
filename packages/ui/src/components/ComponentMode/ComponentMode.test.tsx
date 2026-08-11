@@ -28,10 +28,11 @@ describe('ComponentMode', () => {
   });
 
   const getMockVizNode = (processorName = 'to'): IVisualizationNode => {
+    const mockEntity = { getNodeDefinition: vi.fn().mockReturnValue({}) };
     return {
-      data: { processorName, path: `route.from.steps.0.${processorName}` },
+      data: { processorName, path: `route.from.steps.0.${processorName}`, entity: mockEntity },
       getNodeSchema: () => undefined,
-      getNodeDefinition: () => ({}),
+      fetchNodeDefinition: vi.fn().mockResolvedValue({}),
       updateModel: vi.fn(),
     } as unknown as IVisualizationNode;
   };

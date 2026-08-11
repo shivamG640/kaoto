@@ -25,7 +25,7 @@ import { NodeEnrichmentService } from './nodes/node-enrichment.service';
 import { NodeMapperService } from './nodes/node-mapper.service';
 import { CamelComponentDefaultService } from './support/camel-component-default.service';
 import { CamelComponentSchemaService } from './support/camel-component-schema.service';
-import { CamelProcessorStepsProperties, CamelRouteVisualEntityData } from './support/camel-component-types';
+import { CamelProcessorStepsProperties, CamelRouteVisualEntityData, ICamelElementLookupResult } from './support/camel-component-types';
 import { ModelValidationService } from './support/validators/model-validation.service';
 
 export abstract class AbstractCamelVisualEntity<T extends object> implements BaseVisualEntity {
@@ -150,6 +150,26 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
 
     const definition = getValue(this.entityDef, path);
     const camelElementLookup = CamelComponentSchemaService.getCamelComponentLookup(path, definition);
+    const updatedDefinition = CamelComponentSchemaService.getUpdatedDefinition(camelElementLookup, definition);
+
+    /** Overriding parameters with an empty object When the parameters property is mistakenly set to null */
+    if (updatedDefinition?.parameters === null) {
+      updatedDefinition.parameters = {};
+    }
+
+    return updatedDefinition;
+  }
+
+  async fetchNodeDefinition(path: string | undefined, ids: IVisualizationNodeIds): Promise<unknown> {
+    if (!path) return undefined;
+
+    const definition = getValue(this.entityDef, path);
+
+    // Build the lookup directly from ids — no path-string parsing needed
+    const processorName = (ids.primaryNodeId?.name ?? '') as keyof ProcessorDefinition;
+    const componentName = ids.secondaryNodeId?.name;
+    const camelElementLookup: ICamelElementLookupResult = { processorName, componentName };
+
     const updatedDefinition = CamelComponentSchemaService.getUpdatedDefinition(camelElementLookup, definition);
 
     /** Overriding parameters with an empty object When the parameters property is mistakenly set to null */
@@ -297,9 +317,9 @@ export abstract class AbstractCamelVisualEntity<T extends object> implements Bas
     };
   }
 
-  getNodeValidationText(path?: string | undefined): string | undefined {
+  async getNodeValidationText(path?: string | undefined): Promise<string | undefined> {
     const schema = this.getNodeSchema(path);
-    const definition = this.getNodeDefinition(path);
+    const definition = await this.fetchNodeDefinition(path, {});
     if (!schema || !definition) return undefined;
 
     return ModelValidationService.validateNodeStatus(schema, definition);

@@ -887,19 +887,19 @@ describe('CitrusTestVisualEntity', () => {
   });
 
   describe('getNodeValidationText', () => {
-    it('should return an `undefined` if the path is `undefined`', () => {
-      const result = citrusTestEntity.getNodeValidationText();
+    it('should return an `undefined` if the path is `undefined`', async () => {
+      const result = await citrusTestEntity.getNodeValidationText();
 
       expect(result).toBeUndefined();
     });
 
-    it('should return an `undefined` if the path is empty', () => {
-      const result = citrusTestEntity.getNodeValidationText('');
+    it('should return an `undefined` if the path is empty', async () => {
+      const result = await citrusTestEntity.getNodeValidationText('');
 
       expect(result).toBeUndefined();
     });
 
-    it('should return a validation text relying on the `validateNodeStatus` method', () => {
+    it('should return a validation text relying on the `validateNodeStatus` method', async () => {
       const invalidModel = cloneDeep(citrusTestJson);
       setValue(invalidModel, 'actions[0].print.message', undefined);
       const entity = new CitrusTestVisualEntity(invalidModel);
@@ -907,7 +907,7 @@ describe('CitrusTestVisualEntity', () => {
       const spy = vi.spyOn(CitrusTestSchemaService, 'extractTestActionName');
       spy.mockReturnValueOnce('print');
 
-      const result = entity.getNodeValidationText('actions.0.print');
+      const result = await entity.getNodeValidationText('actions.0.print');
 
       expect(spy).toHaveBeenCalledWith('actions.0.print');
       expect(result).toBe('1 required parameter is not yet configured: [ message ]');
@@ -1332,6 +1332,27 @@ describe('CitrusTestVisualEntity', () => {
         name: actionNode?.data.name,
         catalogKind: CatalogKind.TestAction,
       });
+    });
+  });
+
+  describe('fetchNodeDefinition', () => {
+    it('should return undefined if no path is provided', async () => {
+      const result = await citrusTestEntity.fetchNodeDefinition(undefined, {});
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the test object for root path', async () => {
+      const result = await citrusTestEntity.fetchNodeDefinition('test', {});
+      expect(result).toEqual(citrusTestEntity.test);
+    });
+
+    it('should return the same result as getNodeDefinition for a valid action path', async () => {
+      const path = 'actions.0.print';
+      const syncResult = citrusTestEntity.getNodeDefinition(path);
+      const asyncResult = await citrusTestEntity.fetchNodeDefinition(path, {
+        primaryNodeId: { name: 'print', catalogKind: CatalogKind.TestAction },
+      });
+      expect(asyncResult).toEqual(syncResult);
     });
   });
 });
