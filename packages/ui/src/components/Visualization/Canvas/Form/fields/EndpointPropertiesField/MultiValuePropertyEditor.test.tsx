@@ -1,7 +1,8 @@
 import { FieldProps, ModelContextProvider, SchemaProvider, setValue, useFieldValue } from '@kaoto/forms';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Mock } from 'vitest';
 
+import { CatalogKind } from '../../../../../../models/catalog-kind';
 import { MultiValuePropertyService } from './MultiValueProperty.service';
 import { MultiValuePropertyEditor } from './MultiValuePropertyEditor';
 
@@ -66,32 +67,36 @@ describe('MultiValuePropertyEditor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    readMultiValueSpy.mockReturnValue({ jobParameters: { name: 'daily' } });
-    getMultiValueSerializedDefinitionSpy.mockReturnValue({
+    readMultiValueSpy.mockResolvedValue({ jobParameters: { name: 'daily' } });
+    getMultiValueSerializedDefinitionSpy.mockResolvedValue({
       parameters: { 'job.name': 'updated' },
     } as unknown as Record<string, string>);
   });
 
-  it('should render the transformed model and disabled state', () => {
+  it('should render the transformed model and disabled state', async () => {
     renderComponent();
 
-    expect(readMultiValueSpy).toHaveBeenCalledWith('quartz', { 'job.name': 'daily' });
-    expect(screen.getByTestId('model-context-provider-disabled')).toHaveTextContent('true');
-    expect(screen.getByTestId('model-context-provider-model')).toHaveTextContent(
-      JSON.stringify({ jobParameters: { name: 'daily' } }),
-    );
-    expect(screen.getByTestId('object-field-parameters')).toHaveTextContent('ObjectField: parameters');
+    expect(readMultiValueSpy).toHaveBeenCalledWith('quartz', CatalogKind.Component, { 'job.name': 'daily' });
+    await waitFor(() => {
+      expect(screen.getByTestId('model-context-provider-disabled')).toHaveTextContent('true');
+      expect(screen.getByTestId('model-context-provider-model')).toHaveTextContent(
+        JSON.stringify({ jobParameters: { name: 'daily' } }),
+      );
+      expect(screen.getByTestId('object-field-parameters')).toHaveTextContent('ObjectField: parameters');
+    });
   });
 
-  it('should serialize property changes and forward flattened parameters', () => {
+  it('should serialize property changes and forward flattened parameters', async () => {
     renderComponent();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
+    });
 
     expect(setValue).toHaveBeenCalledWith({ parameters: { jobParameters: { name: 'daily' } } }, 'parameters', {
       jobParameters: { name: 'updated' },
     });
-    expect(getMultiValueSerializedDefinitionSpy).toHaveBeenCalledWith('quartz', {
+    expect(getMultiValueSerializedDefinitionSpy).toHaveBeenCalledWith('quartz', CatalogKind.Component, {
       parameters: { jobParameters: { name: 'daily' } },
     });
     expect(mockOnPropertyChange).toHaveBeenCalledWith('parameters', { 'job.name': 'updated' });
@@ -100,22 +105,24 @@ describe('MultiValuePropertyEditor', () => {
   it('should use an empty component name when schema metadata is missing', () => {
     renderComponent({ schema: {} });
 
-    expect(readMultiValueSpy).toHaveBeenCalledWith('', { 'job.name': 'daily' });
+    expect(readMultiValueSpy).toHaveBeenCalledWith('', CatalogKind.Component, { 'job.name': 'daily' });
   });
 
-  it('should not call onPropertyChange when serialized parameters are missing', () => {
-    getMultiValueSerializedDefinitionSpy.mockReturnValue(undefined);
+  it('should not call onPropertyChange when serialized parameters are missing', async () => {
+    getMultiValueSerializedDefinitionSpy.mockResolvedValue(undefined);
 
     renderComponent();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
+    });
 
     expect(mockOnPropertyChange).not.toHaveBeenCalled();
   });
 
-  it('should delete property key when value is empty string', () => {
-    readMultiValueSpy.mockReturnValue({ jobParameters: { name: 'daily' } });
-    getMultiValueSerializedDefinitionSpy.mockReturnValue({
+  it('should delete property key when value is empty string', async () => {
+    readMultiValueSpy.mockResolvedValue({ jobParameters: { name: 'daily' } });
+    getMultiValueSerializedDefinitionSpy.mockResolvedValue({
       parameters: { 'job.description': 'test' },
     } as unknown as Record<string, string>);
 
@@ -123,7 +130,9 @@ describe('MultiValuePropertyEditor', () => {
       model: { parameters: { 'job.name': 'daily', 'job.description': 'test' } },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
+    });
 
     // When jobParameters.name is set to empty string, it should be converted to undefined
     // which causes setValue to delete the key

@@ -1,16 +1,20 @@
 import { isDefined } from '@kaoto/forms';
 
-import { CamelCatalogService, CatalogKind } from '../../../../../../models';
+import { DynamicCatalogRegistry } from '../../../../../../dynamic-catalog/dynamic-catalog-registry';
+import { CatalogKind, ICamelComponentDefinition } from '../../../../../../models';
 import { ParsedParameters } from '../../../../../../utils';
 
 export class MultiValuePropertyService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static readMultiValue(componentName: string, definition: any) {
-    const catalogLookup = CamelCatalogService.getCatalogLookup(componentName);
+  static async readMultiValue(componentName: string, catalogKind: CatalogKind, definition: any) {
+    const catalogLookup = (await DynamicCatalogRegistry.get().getEntity(
+      catalogKind,
+      componentName,
+    )) as ICamelComponentDefinition;
 
     const multiValueParameters: Map<string, string> = new Map<string, string>();
-    if (catalogLookup?.definition?.properties !== undefined) {
-      Object.entries(catalogLookup.definition.properties).forEach(([key, value]) => {
+    if (catalogLookup?.properties !== undefined) {
+      Object.entries(catalogLookup.properties).forEach(([key, value]) => {
         if (value.multiValue) multiValueParameters.set(key, value.prefix!);
       });
     }
@@ -51,17 +55,24 @@ export class MultiValuePropertyService {
     return parameters;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getMultiValueSerializedDefinition(componentName: string, definition: any): ParsedParameters | undefined {
+  static async getMultiValueSerializedDefinition(
+    componentName: string,
+    catalogKind: CatalogKind,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    definition: any,
+  ): Promise<ParsedParameters | undefined> {
     if (!componentName || !isDefined(definition)) {
       return definition;
     }
 
-    const catalogLookup = CamelCatalogService.getCatalogLookup(componentName);
-    if (catalogLookup.catalogKind === CatalogKind.Component) {
+    const catalogLookup = (await DynamicCatalogRegistry.get().getEntity(
+      catalogKind,
+      componentName,
+    )) as ICamelComponentDefinition;
+    if (catalogKind === CatalogKind.Component) {
       const multiValueParameters: Map<string, string> = new Map<string, string>();
-      if (catalogLookup.definition?.properties !== undefined) {
-        Object.entries(catalogLookup.definition.properties).forEach(([key, value]) => {
+      if (catalogLookup.properties !== undefined) {
+        Object.entries(catalogLookup.properties).forEach(([key, value]) => {
           if (value.multiValue) multiValueParameters.set(key, value.prefix!);
         });
       }
