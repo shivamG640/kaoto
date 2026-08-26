@@ -89,9 +89,8 @@ describe('MultiValuePropertyEditor', () => {
   it('should serialize property changes and forward flattened parameters', async () => {
     renderComponent();
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
-    });
+    const triggerPropertyChangeButton = await screen.findByRole('button', { name: 'Trigger property change' });
+    fireEvent.click(triggerPropertyChangeButton);
 
     expect(setValue).toHaveBeenCalledWith({ parameters: { jobParameters: { name: 'daily' } } }, 'parameters', {
       jobParameters: { name: 'updated' },
@@ -99,7 +98,9 @@ describe('MultiValuePropertyEditor', () => {
     expect(getMultiValueSerializedDefinitionSpy).toHaveBeenCalledWith('quartz', CatalogKind.Component, {
       parameters: { jobParameters: { name: 'daily' } },
     });
-    expect(mockOnPropertyChange).toHaveBeenCalledWith('parameters', { 'job.name': 'updated' });
+    await waitFor(() => {
+      expect(mockOnPropertyChange).toHaveBeenCalledWith('parameters', { 'job.name': 'updated' });
+    });
   });
 
   it('should use an empty component name when schema metadata is missing', () => {
@@ -113,9 +114,8 @@ describe('MultiValuePropertyEditor', () => {
 
     renderComponent();
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
-    });
+    const triggerPropertyChangeButton = await screen.findByRole('button', { name: 'Trigger property change' });
+    fireEvent.click(triggerPropertyChangeButton);
 
     expect(mockOnPropertyChange).not.toHaveBeenCalled();
   });
@@ -130,9 +130,8 @@ describe('MultiValuePropertyEditor', () => {
       model: { parameters: { 'job.name': 'daily', 'job.description': 'test' } },
     });
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Trigger property change' }));
-    });
+    const triggerPropertyChangeButton = await screen.findByRole('button', { name: 'Trigger property change' });
+    fireEvent.click(triggerPropertyChangeButton);
 
     // When jobParameters.name is set to empty string, it should be converted to undefined
     // which causes setValue to delete the key
@@ -141,6 +140,8 @@ describe('MultiValuePropertyEditor', () => {
     });
 
     // The final serialized result should not include the deleted property
-    expect(mockOnPropertyChange).toHaveBeenCalledWith('parameters', { 'job.description': 'test' });
+    await waitFor(() => {
+      expect(mockOnPropertyChange).toHaveBeenCalledWith('parameters', { 'job.description': 'test' });
+    });
   });
 });
