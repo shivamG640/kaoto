@@ -24,12 +24,16 @@ export const MultiValuePropertyEditor: FunctionComponent<FieldProps> = ({ propNa
   const [isReady, setIsReady] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    void MultiValuePropertyService.readMultiValue(componentName, catalogKind, flatParameters).then((parameters) => {
-      if (!cancelled) {
-        setNestedModel({ parameters });
-        setIsReady(true);
-      }
-    });
+    MultiValuePropertyService.readMultiValue(componentName, catalogKind, flatParameters)
+      .then((parameters) => {
+        if (!cancelled) {
+          setNestedModel({ parameters });
+          setIsReady(true);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) console.error(error);
+      });
     return () => {
       cancelled = true;
     };

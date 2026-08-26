@@ -71,7 +71,7 @@ export class MultiValuePropertyService {
     )) as ICamelComponentDefinition;
     if (catalogKind === CatalogKind.Component) {
       const multiValueParameters: Map<string, string> = new Map<string, string>();
-      if (catalogLookup.properties !== undefined) {
+      if (catalogLookup?.properties !== undefined) {
         Object.entries(catalogLookup.properties).forEach(([key, value]) => {
           if (value.multiValue) multiValueParameters.set(key, value.prefix!);
         });
