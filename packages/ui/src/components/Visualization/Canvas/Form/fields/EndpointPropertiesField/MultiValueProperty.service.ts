@@ -61,7 +61,7 @@ export class MultiValuePropertyService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     definition: any,
   ): Promise<ParsedParameters | undefined> {
-    if (!componentName || !isDefined(definition)) {
+    if (!componentName || !catalogKind || !isDefined(definition)) {
       return definition;
     }
 
@@ -70,12 +70,13 @@ export class MultiValuePropertyService {
       componentName,
     )) as ICamelComponentDefinition;
     if (catalogKind === CatalogKind.Component) {
-      const multiValueParameters: Map<string, string> = new Map<string, string>();
-      if (catalogLookup?.properties !== undefined) {
-        Object.entries(catalogLookup.properties).forEach(([key, value]) => {
-          if (value.multiValue) multiValueParameters.set(key, value.prefix!);
-        });
+      if (!catalogLookup?.properties) {
+        return definition;
       }
+      const multiValueParameters: Map<string, string> = new Map<string, string>();
+      Object.entries(catalogLookup.properties).forEach(([key, value]) => {
+        if (value.multiValue) multiValueParameters.set(key, value.prefix!);
+      });
       const defaultMultiValues: ParsedParameters = {};
       const filteredParameters = { ...definition.parameters };
       const prefixes = Array.from(multiValueParameters.values());
