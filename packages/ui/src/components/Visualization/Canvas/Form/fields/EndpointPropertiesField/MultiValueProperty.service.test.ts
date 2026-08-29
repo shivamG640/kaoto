@@ -16,26 +16,51 @@ describe('MultiValuePropertyService', () => {
     DynamicCatalogRegistry.get().clearRegistry();
   });
 
+  describe('getMultiValueProperties', () => {
+    it('should query the dynamic catalog service', async () => {
+      const dynamicCatalogServiceSpy = vi.spyOn(DynamicCatalogRegistry.get(), 'getEntity');
+
+      await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'log');
+
+      expect(dynamicCatalogServiceSpy).toHaveBeenCalledWith(CatalogKind.Component, 'log');
+    });
+
+    it('should return an empty map for components without multi-value parameters', async () => {
+      const result = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'log');
+
+      expect(result.size).toBe(0);
+    });
+
+    it('should return multi-value prefixes for quartz', async () => {
+      const result = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'quartz');
+
+      expect(result.get('jobParameters')).toBe('job.');
+      expect(result.get('triggerParameters')).toBe('trigger.');
+    });
+  });
+
   describe('readMultiValue', () => {
     it('should return original properties if component has no multi-value parameters', async () => {
+      const multiValueMap = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'log');
       const definition = { message: 'Hello World', level: 'INFO' };
-      const result = await MultiValuePropertyService.readMultiValue('log', CatalogKind.Component, definition);
+      const result = MultiValuePropertyService.readMultiValue(multiValueMap, definition);
 
       expect(result).toEqual({ message: 'Hello World', level: 'INFO' });
     });
 
     it('should return original properties if component is not found', async () => {
-      const definition = { param1: 'value1', param2: 'value2' };
-      const result = await MultiValuePropertyService.readMultiValue(
-        'unknown-component',
+      const multiValueMap = await MultiValuePropertyService.getMultiValueProperties(
         CatalogKind.Component,
-        definition,
+        'unknown-component',
       );
+      const definition = { param1: 'value1', param2: 'value2' };
+      const result = MultiValuePropertyService.readMultiValue(multiValueMap, definition);
 
       expect(result).toEqual({ param1: 'value1', param2: 'value2' });
     });
 
     it('should convert flat multi-value parameters to nested structure', async () => {
+      const multiValueMap = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'quartz');
       const definition = {
         'job.name': 'myJob',
         'job.description': 'My job description',
@@ -43,7 +68,7 @@ describe('MultiValuePropertyService', () => {
         'trigger.repeatInterval': '1000',
         normalParam: 'normalValue',
       };
-      const result = await MultiValuePropertyService.readMultiValue('quartz', CatalogKind.Component, definition);
+      const result = MultiValuePropertyService.readMultiValue(multiValueMap, definition);
 
       expect(result).toEqual({
         normalParam: 'normalValue',
@@ -59,12 +84,13 @@ describe('MultiValuePropertyService', () => {
     });
 
     it('should handle mixed parameters correctly', async () => {
+      const multiValueMap = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'quartz');
       const definition = {
         'job.name': 'testJob',
         regularParam: 'value',
         'trigger.cron': '0 0 * * *',
       };
-      const result = await MultiValuePropertyService.readMultiValue('quartz', CatalogKind.Component, definition);
+      const result = MultiValuePropertyService.readMultiValue(multiValueMap, definition);
 
       expect(result).toEqual({
         regularParam: 'value',
@@ -78,8 +104,9 @@ describe('MultiValuePropertyService', () => {
     });
 
     it('should handle empty definition', async () => {
+      const multiValueMap = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'quartz');
       const definition = {};
-      const result = await MultiValuePropertyService.readMultiValue('quartz', CatalogKind.Component, definition);
+      const result = MultiValuePropertyService.readMultiValue(multiValueMap, definition);
 
       expect(result).toEqual({
         jobParameters: {},
@@ -89,49 +116,30 @@ describe('MultiValuePropertyService', () => {
   });
 
   describe('getMultiValueSerializedDefinition', () => {
-    it('should return the same parameters if the definition is not a component', async () => {
+    it('should return the definition with empty parameters when multi-value map is empty', () => {
       const definition = { log: { message: 'Hello World' } };
-      const result = await MultiValuePropertyService.getMultiValueSerializedDefinition(
-        'from',
-        CatalogKind.Pattern,
-        definition,
-      );
+      const result = MultiValuePropertyService.getMultiValueSerializedDefinition(new Map(), definition);
 
-      expect(result).toEqual({ log: { message: 'Hello World' } });
+      expect(result).toEqual({ log: { message: 'Hello World' }, parameters: {} });
     });
 
-    it('should return the same parameters if the component is not found', async () => {
+    it('should return the same parameters if the component is not found', () => {
       const definition = {
         uri: 'unknown-component',
         parameters: { jobParameters: { test: 'test' }, triggerParameters: { test: 'test' } },
       };
-      const result = await MultiValuePropertyService.getMultiValueSerializedDefinition(
-        'from',
-        CatalogKind.Pattern,
-        definition,
-      );
+      const result = MultiValuePropertyService.getMultiValueSerializedDefinition(new Map(), definition);
 
       expect(result).toEqual(definition);
     });
 
-    it('should query the dynamic catalog service', async () => {
-      const definition = { uri: 'log', parameters: { message: 'Hello World' } };
-      const dynamicCatalogServiceSpy = vi.spyOn(DynamicCatalogRegistry.get(), 'getEntity');
-
-      await MultiValuePropertyService.getMultiValueSerializedDefinition('log', CatalogKind.Component, definition);
-      expect(dynamicCatalogServiceSpy).toHaveBeenCalledWith(CatalogKind.Component, 'log');
-    });
-
     it('should return the serialized definition', async () => {
+      const multiValueMap = await MultiValuePropertyService.getMultiValueProperties(CatalogKind.Component, 'quartz');
       const definition = {
         uri: 'quartz',
         parameters: { jobParameters: { test: 'test' }, triggerParameters: { test: 'test' } },
       };
-      const result = await MultiValuePropertyService.getMultiValueSerializedDefinition(
-        'quartz',
-        CatalogKind.Component,
-        definition,
-      );
+      const result = MultiValuePropertyService.getMultiValueSerializedDefinition(multiValueMap, definition);
 
       expect(result).toEqual({
         uri: 'quartz',

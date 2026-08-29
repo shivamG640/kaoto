@@ -5,8 +5,7 @@ import { CatalogKind, ICamelComponentDefinition } from '../../../../../../models
 import { ParsedParameters } from '../../../../../../utils';
 
 export class MultiValuePropertyService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async readMultiValue(componentName: string, catalogKind: CatalogKind, definition: any) {
+  static async getMultiValueProperties(catalogKind: CatalogKind, componentName: string) {
     const catalogLookup = (await DynamicCatalogRegistry.get().getEntity(
       catalogKind,
       componentName,
@@ -18,7 +17,11 @@ export class MultiValuePropertyService {
         if (value.multiValue) multiValueParameters.set(key, value.prefix!);
       });
     }
+    return multiValueParameters;
+  }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static readMultiValue(multiValueParameters: Map<string, string>, definition: any) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parameters: any = {};
 
@@ -55,50 +58,35 @@ export class MultiValuePropertyService {
     return parameters;
   }
 
-  static async getMultiValueSerializedDefinition(
-    componentName: string,
-    catalogKind: CatalogKind,
+  static getMultiValueSerializedDefinition(
+    multiValueParameters: Map<string, string>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     definition: any,
-  ): Promise<ParsedParameters | undefined> {
-    if (!componentName || !catalogKind || !isDefined(definition)) {
+  ): ParsedParameters | undefined {
+    if (!isDefined(definition)) {
       return definition;
     }
 
-    const catalogLookup = (await DynamicCatalogRegistry.get().getEntity(
-      catalogKind,
-      componentName,
-    )) as ICamelComponentDefinition;
-    if (catalogKind === CatalogKind.Component) {
-      if (!catalogLookup?.properties) {
-        return definition;
-      }
-      const multiValueParameters: Map<string, string> = new Map<string, string>();
-      Object.entries(catalogLookup.properties).forEach(([key, value]) => {
-        if (value.multiValue) multiValueParameters.set(key, value.prefix!);
-      });
-      const defaultMultiValues: ParsedParameters = {};
-      const filteredParameters = { ...definition.parameters };
-      const prefixes = Array.from(multiValueParameters.values());
+    const defaultMultiValues: ParsedParameters = {};
+    const filteredParameters = { ...definition.parameters };
+    const prefixes = Array.from(multiValueParameters.values());
 
-      if (definition.parameters !== undefined) {
-        Object.keys(definition.parameters).forEach((key) => {
-          if (multiValueParameters.has(key)) {
-            if (definition.parameters[key] === undefined) {
-              return;
-            }
-            Object.keys(definition.parameters[key]).forEach((subKey) => {
-              defaultMultiValues[multiValueParameters.get(key) + subKey] = definition.parameters[key][subKey];
-            });
-            delete filteredParameters[key];
-          } else if (prefixes.some((prefix) => key.startsWith(prefix))) {
-            // Remove stale flat keys that match a multi-value prefix
-            delete filteredParameters[key];
+    if (definition.parameters !== undefined) {
+      Object.keys(definition.parameters).forEach((key) => {
+        if (multiValueParameters.has(key)) {
+          if (definition.parameters[key] === undefined) {
+            return;
           }
-        });
-      }
-      return { ...definition, parameters: { ...filteredParameters, ...defaultMultiValues } };
+          Object.keys(definition.parameters[key]).forEach((subKey) => {
+            defaultMultiValues[multiValueParameters.get(key) + subKey] = definition.parameters[key][subKey];
+          });
+          delete filteredParameters[key];
+        } else if (prefixes.some((prefix) => key.startsWith(prefix))) {
+          // Remove stale flat keys that match a multi-value prefix
+          delete filteredParameters[key];
+        }
+      });
     }
-    return definition;
+    return { ...definition, parameters: { ...filteredParameters, ...defaultMultiValues } };
   }
 }
